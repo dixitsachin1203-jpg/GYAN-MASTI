@@ -1,92 +1,217 @@
 import streamlit as st
 from pypdf import PdfReader
-from sentence_transformers import SentenceTransformer
-import faiss
-import numpy as np
+
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.vectorstores import FAISS
+from langchain_community.embeddings import HuggingFaceEmbeddings
+
+from langchain_ollama import OllamaLLM
+from langchain.chains import RetrievalQA
+
+# ----------------------------------
+# PAGE CONFIG
+# ----------------------------------
 
 st.set_page_config(
     page_title="GyanMasti.ai",
-    page_icon="📚",
+    page_icon="🤖",
     layout="wide"
 )
 
-st.title("📚 GyanMasti.ai")
-st.subheader("Ask Questions From Your PDF Notes (Offline Version)")
+# ----------------------------------
+# STYLING
+# ----------------------------------
 
-model = SentenceTransformer("all-MiniLM-L6-v2")
+st.markdown("""
+<style>
 
-def extract_text(pdf_file):
-    text = ""
+.stApp{
+background: linear-gradient(
+135deg,
+#020617,
+#0f172a,
+#111827
+);
+color:white;
+}
 
-    reader = PdfReader(pdf_file)
+.main-title{
+font-size:55px;
+font-weight:800;
+text-align:center;
+background:linear-gradient(90deg,#00F5FF,#00FF9D);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+}
 
-    for page in reader.pages:
-        page_text = page.extract_text()
+.subtitle{
+text-align:center;
+color:#94a3b8;
+font-size:18px;
+}
 
-        if page_text:
-            text += page_text
+.chat-user{
+background:#1e293b;
+padding:15px;
+border-radius:15px;
+margin:10px;
+}
 
-    return text
+.chat-ai{
+background:#0f766e;
+padding:15px;
+border-radius:15px;
+margin:10px;
+}
 
-def chunk_text(text, chunk_size=500):
-    chunks = []
+</style>
+""", unsafe_allow_html=True)
 
-    for i in range(0, len(text), chunk_size):
-        chunks.append(text[i:i+chunk_size])
+# ----------------------------------
+# HEADER
+# ----------------------------------
 
-    return chunks
+st.markdown(
+"""
+<div class="main-title">
+🤖 GyanMasti.ai
+</div>
 
-if "chunks" not in st.session_state:
-    st.session_state.chunks = []
-
-if "index" not in st.session_state:
-    st.session_state.index = None
-
-uploaded_file = st.file_uploader(
-    "Upload PDF",
-    type="pdf"
+<div class="subtitle">
+Learn Smarter • Revise Faster • Score Better
+</div>
+""",
+unsafe_allow_html=True
 )
 
-if uploaded_file:
+# ----------------------------------
+# SESSION
+# ----------------------------------
 
-    if st.button("Process PDF"):
+if "qa_chain" not in st.session_state:
+    st.session_state.qa_chain = None
 
-        with st.spinner("Reading PDF..."):
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-            text = extract_text(uploaded_file)
+# ----------------------------------
+# SIDEBAR
+# ----------------------------------
 
-            chunks = chunk_text(text)
+with st.sidebar:
 
-            embeddings = model.encode(chunks)
+    st.header("📚 Upload Notes")
 
-            dimension = embeddings.shape[1]
-
-            index = faiss.IndexFlatL2(dimension)
-
-            index.add(np.array(embeddings))
-
-            st.session_state.chunks = chunks
-            st.session_state.index = index
-
-        st.success("PDF Processed Successfully!")
-
-question = st.text_input(
-    "Ask your question"
-)
-
-if question and st.session_state.index is not None:
-
-    q_embedding = model.encode([question])
-
-    distances, indices = st.session_state.index.search(
-        np.array(q_embedding),
-        k=3
+    pdfs = st.file_uploader(
+        "Upload PDFs",
+        type="pdf",
+        accept_multiple_files=True
     )
 
-    st.markdown("## Answer")
+    process = st.button("🚀 Build Knowledge Base")
 
-    for idx in indices[0]:
-        st.write(st.session_state.chunks[idx])
+# ----------------------------------
+# PDF PROCESSING
+# ----------------------------------
 
-st.markdown("---")
-st.caption("GyanMasti.ai • Offline PDF Search Assistant")
+if process and pdfs:
+
+    with st.spinner("Reading PDFs..."):
+
+        text = ""
+
+        for pdf in pdfs:
+
+            reader = PdfReader(pdf)
+
+            for page in reader.pages:
+
+                page_text = page.extract_text()
+
+                if page_text:
+                    text += page_text
+
+        splitter = RecursiveCharacterTextSplitter(
+            chunk_size=1000,
+            chunk_overlap=200
+        )
+
+        chunks = splitter.split_text(text)
+
+        embeddings = HuggingFaceEmbeddings(
+            model_name="sentence-transformers/all-MiniLM-L6-v2"
+        )
+
+        vectorstore = FAISS.from_texts(
+            chunks,
+            embeddings
+        )
+
+        llm = OllamaLLM(
+            model="llama3"
+        )
+
+        qa_chain = RetrievalQA.from_chain_type(
+            llm=llm,
+            retriever=vectorstore.as_retriever(
+                search_kwargs={"k": 4}
+            )
+        )
+
+        st.session_state.qa_chain = qa_chain
+
+    st.success("Knowledge Base Ready!")
+
+# ----------------------------------
+# CHAT HISTORY
+# ----------------------------------
+
+for msg in st.session_state.messages:
+
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
+
+# ----------------------------------
+# CHAT INPUT
+# ----------------------------------
+
+question = st.chat_input(
+    "Ask anything from your uploaded notes..."
+)
+
+if question:
+
+    st.session_state.messages.append(
+        {
+            "role":"user",
+            "content":question
+        }
+    )
+
+    with st.chat_message("user"):
+        st.markdown(question)
+
+    with st.chat_message("assistant"):
+
+        if st.session_state.qa_chain is None:
+
+            answer = """
+Please upload PDFs and build the knowledge base first.
+"""
+
+        else:
+
+            with st.spinner("🧠 Thinking..."):
+
+                answer = st.session_state.qa_chain.run(
+                    question
+                )
+
+        st.markdown(answer)
+
+    st.session_state.messages.append(
+        {
+            "role":"assistant",
+            "content":answer
+        }
+    )
