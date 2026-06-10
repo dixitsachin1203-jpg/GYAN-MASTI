@@ -4,7 +4,7 @@ import google.generativeai as genai
 
 # Configure your active API key
 API_KEY = "AQ.Ab8RN6LrJWF71BqNTDthIzwnBmOrOVJt8s7FAcjXLluCV7x7IA"
-genai.configure(api_key=API_KEY)
+genai.configure(api_key=AQ.Ab8RN6JIEADWCwjZ5FBnQqWUHlksNBsx-r1ERCp8b8U1rGjPKQ)
 
 # Define a unique name for your custom model
 TUNED_MODEL_NAME = "gyanmasti-core-v1"
