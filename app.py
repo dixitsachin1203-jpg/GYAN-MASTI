@@ -1,302 +1,143 @@
 import streamlit as st
-import random
-import string
-import pandas as pd
-import os
-from datetime import datetime
+import google.generativeai as genai
 
-st.set_page_config(page_title="CBSE Results 2025", layout="centered")
-
-# ------------------- STYLING -------------------
-st.markdown("""
-<style>
-.header {
-    background-color: #00a6a6;
-    padding: 15px;
-    color: white;
-    font-size: 22px;
-    font-weight: bold;
-    text-align:center;
-}
-.title {
-    text-align: center;
-    font-size: 26px;
-    font-weight: bold;
-    margin-top: 10px;
-}
-.box {
-    border: 1px solid #ccc;
-    padding: 25px;
-    border-radius: 10px;
-    background-color: #f9f9f9;
-}
-.captcha {
-    font-size: 20px;
-    font-weight: bold;
-    background-color: navy;
-    color: white;
-    padding: 5px 10px;
-    display: inline-block;
-}
-.result-box {
-    padding:20px;
-    border-radius:10px;
-    background-color:white;
-    border:2px solid #ddd;
-}
-.pass {
-    color:green;
-    font-weight:bold;
-}
-.fail {
-    color:red;
-    font-weight:bold;
-}
-</style>
-""", unsafe_allow_html=True)
-
-# ------------------- HEADER -------------------
-st.markdown(
-    '<div class="header">Central Board of Secondary Education</div>',
-    unsafe_allow_html=True
+# 1. Page Configuration
+st.set_page_config(
+    page_title="GYANMASTI.AI",
+    page_icon="🧠",
+    layout="centered",
+    initial_sidebar_state="collapsed"
 )
 
-# ------------------- EXCEL FILE -------------------
-EXCEL_FILE = "searched_results.xlsx"
-
-# ------------------- SUBJECTS -------------------
-subjects = [
-    "English Core",
-    "Physics",
-    "Chemistry",
-    "Mathematics",
-    "Computer Science"
-]
-
-# ------------------- CAPTCHA -------------------
-def generate_captcha():
-    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-
-def normalize_dob(dob):
-    return dob.replace(".", "/").replace("-", "/").strip()
-
-# ------------------- RANDOM RESULT -------------------
-def generate_result():
-
-    marks_data = []
-
-    overall_pass = True
-    total = 0
-
-    for sub in subjects:
-
-        theory = random.randint(20, 70)
-        practical = random.randint(15, 30)
-
-        obtained = theory + practical
-
-        status = "PASS"
-
-        if obtained < 33:
-            status = "FAIL"
-            overall_pass = False
-
-        total += obtained
-
-        marks_data.append({
-            "Subject": sub,
-            "Theory": theory,
-            "Practical": practical,
-            "Total": obtained,
-            "Status": status
-        })
-
-    percentage = round(total / 5, 2)
-
-    final_status = "PASS" if overall_pass else "FAIL"
-
-    return marks_data, total, percentage, final_status
-
-# ------------------- SAVE TO EXCEL -------------------
-def save_to_excel(roll, school, admit, dob, percentage, final_status):
-
-    data = {
-        "Roll Number": [roll],
-        "School Number": [school],
-        "Admit Card ID": [admit],
-        "DOB": [dob],
-        "Percentage": [percentage],
-        "Result": [final_status],
-        "Search Time": [datetime.now().strftime("%d-%m-%Y %H:%M:%S")]
-    }
-
-    df_new = pd.DataFrame(data)
-
-    if os.path.exists(EXCEL_FILE):
-        df_old = pd.read_excel(EXCEL_FILE)
-        df_final = pd.concat([df_old, df_new], ignore_index=True)
-    else:
-        df_final = df_new
-
-    df_final.to_excel(EXCEL_FILE, index=False)
-
-# ------------------- SESSION STATE -------------------
-if "captcha" not in st.session_state:
-    st.session_state.captcha = generate_captcha()
-
-if "submitted" not in st.session_state:
-    st.session_state.submitted = False
-
-if "result_data" not in st.session_state:
-    st.session_state.result_data = None
-
-# ------------------- RESULT PAGE -------------------
-if st.session_state.submitted:
-
-    marks_data, total, percentage, final_status = st.session_state.result_data
-
-    st.markdown(
-        '<div class="title">Senior School Certificate Examination (Class XII) Results 2025</div>',
-        unsafe_allow_html=True
-    )
-
-    st.markdown('<div class="result-box">', unsafe_allow_html=True)
-
-    st.write("### Candidate Details")
-    st.write("**Name :** Candidate")
-    st.write("**Roll Number :**", st.session_state.roll)
-    st.write("**School Number :**", st.session_state.school)
-
-    st.write("---")
-
-    st.write("### Marks Statement")
-
-    table_data = []
-
-    for item in marks_data:
-        table_data.append({
-            "Subject": item["Subject"],
-            "Theory": item["Theory"],
-            "Practical": item["Practical"],
-            "Total": item["Total"],
-            "Result": item["Status"]
-        })
-
-    df = pd.DataFrame(table_data)
-
-    st.table(df)
-
-    st.write("---")
-
-    st.write(f"### Total Marks : {total} / 500")
-    st.write(f"### Percentage : {percentage}%")
-
-    if final_status == "PASS":
-        st.markdown(
-            '<h2 class="pass">RESULT : PASS ✅</h2>',
-            unsafe_allow_html=True
-        )
-    else:
-        st.markdown(
-            '<h2 class="fail">RESULT : FAIL ❌</h2>',
-            unsafe_allow_html=True
-        )
-
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    if st.button("🔙 Search Another Result"):
-        st.session_state.submitted = False
-        st.session_state.captcha = generate_captcha()
-        st.rerun()
-
-# ------------------- FORM PAGE -------------------
-else:
-
-    st.markdown(
-        '<div class="title">Senior School Certificate Examination (Class XII) Results 2025</div>',
-        unsafe_allow_html=True
-    )
-
-    with st.container():
-
-        st.markdown('<div class="box">', unsafe_allow_html=True)
-
-        roll = st.text_input("Your Roll Number")
-        school = st.text_input("Your School Number")
-        admit = st.text_input("Admit Card ID")
-        dob = st.text_input("Date of Birth (DD/MM/YYYY)")
-        pin_input = st.text_input("Enter Security Pin (case sensitive)")
-
-        col1, col2 = st.columns([1, 4])
-
-        with col1:
-            st.markdown(
-                f'<div class="captcha">{st.session_state.captcha}</div>',
-                unsafe_allow_html=True
-            )
-
-        with col2:
-            if st.button("🔄 Refresh"):
-                st.session_state.captcha = generate_captcha()
-
-        col3, col4 = st.columns(2)
-
-        with col3:
-            submit = st.button("Submit")
-
-        with col4:
-            reset = st.button("Reset")
-
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    # ------------------- VALIDATION -------------------
-    if submit:
-
-        dob_clean = normalize_dob(dob)
-
-        if (
-            roll.strip() != "" and
-            school.strip() != "" and
-            admit.strip() != "" and
-            dob_clean != "" and
-            pin_input.strip() == st.session_state.captcha
-        ):
-
-            # Generate random marks
-            result_data = generate_result()
-
-            # Save in session
-            st.session_state.result_data = result_data
-
-            # Save student details
-            st.session_state.roll = roll
-            st.session_state.school = school
-
-            # Save to Excel
-            save_to_excel(
-                roll,
-                school,
-                admit,
-                dob_clean,
-                result_data[2],
-                result_data[3]
-            )
-
-            st.session_state.submitted = True
-            st.rerun()
-
-        else:
-            st.error("❌ Please fill all details correctly and enter valid captcha.")
-
-    if reset:
-        st.session_state.captcha = generate_captcha()
-        st.rerun()
-
-# ------------------- DISCLAIMER -------------------
+# 2. Inject Premium Dark Theme Aesthetics
 st.markdown("""
----
-**Disclaimer:** Neither NIC nor CBSE is responsible for any inadvertent
-error that may have crept in the results being published on Net.
-The results published on net are for immediate information to the examinees.
-These cannot be treated as original mark sheets.
-""")
+    <style>
+    @import url('https://googleapis.com');
+    
+    html, body, [data-testid="stAppViewContainer"] {
+        font-family: 'Inter', sans-serif;
+        background-color: #0E1117;
+    }
+    
+    .title-gradient {
+        background: linear-gradient(90deg, #FF4B4B, #852DF4, #4A00E0);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-size: 3rem !important;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 0px;
+        padding-bottom: 0px;
+        letter-spacing: -1px;
+    }
+    
+    .subtitle-text {
+        text-align: center;
+        color: #A0AEC0;
+        font-size: 1.1rem;
+        margin-top: -10px;
+        margin-bottom: 30px;
+        font-weight: 300;
+    }
+    
+    [data-testid="stChatMessage"] {
+        background-color: rgba(255, 255, 255, 0.03) !important;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        padding: 1rem;
+        margin-bottom: 10px;
+    }
+    
+    [data-testid="stSidebar"] {
+        background-color: #0A0C10;
+        border-right: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .glow-divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(133, 45, 244, 0.3), transparent);
+        margin: 25px 0;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# 3. Secure Production API Key Configuration
+API_KEY = "AQ.Ab8RN6LrJWF71BqNTDthIzwnBmOrOVJt8s7FAcjXLluCV7x7IA"
+genai.configure(api_key=API_KEY)
+
+# 4. Reference your trained model path
+MODEL_PATH = "tunedModels/gyanmasti-core-v1"
+
+# 5. Sidebar Layout Panel
+with st.sidebar:
+    st.markdown("### ⚙️ Engine Settings")
+    st.info("Model Identity: Fine-Tuned Active ✅")
+    st.markdown("---")
+    st.markdown("### 🧬 Developer Info")
+    st.markdown("**Creator:** Geetansh Shukla")
+    
+    if st.button("🧹 Clear Conversation", use_container_width=True):
+        st.session_state.messages = []
+        st.rerun()
+
+# 6. Main Branding Header
+st.markdown('<h1 class="title-gradient">GYANMASTI.AI</h1>', unsafe_allow_html=True)
+st.markdown('<p class="subtitle-text">⚡ Powered by Geetansh Shukla</p>', unsafe_allow_html=True)
+
+# 7. Initialize Memory Store
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+# Quick Start Templates
+if len(st.session_state.messages) == 0:
+    st.markdown("#### 💡 Test Your Training")
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("🧠 Who created GYANMASTI.AI?", use_container_width=True):
+            st.session_state.active_prompt = "Who created GYANMASTI.AI?"
+    with col2:
+        if st.button("🚀 Who is Geetansh Shukla?", use_container_width=True):
+            st.session_state.active_prompt = "Who is Geetansh Shukla?"
+
+st.markdown('<div class="glow-divider"></div>', unsafe_allow_html=True)
+
+# 8. Render Chat Feed
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+# 9. Handle Prompt Selections
+default_input = ""
+if "active_prompt" in st.session_state and st.session_state.active_prompt:
+    default_input = st.session_state.active_prompt
+    st.session_state.active_prompt = None
+
+if user_query := st.chat_input("Message GYANMASTI.AI..."):
+    current_prompt = user_query
+elif default_input:
+    current_prompt = default_input
+else:
+    current_prompt = None
+
+# 10. API Execution Pipeline
+if current_prompt:
+    with st.chat_message("user"):
+        st.markdown(current_prompt)
+    st.session_state.messages.append({"role": "user", "content": current_prompt})
+
+    with st.chat_message("assistant"):
+        response_placeholder = st.empty()
+        
+        try:
+            # Reconstruct the session history structure for the chat engine
+            chat = genai.GenerativeModel(model_name=MODEL_PATH).start_chat(history=[])
+            
+            # Request response text directly from your custom brain
+            response = chat.send_message(current_prompt)
+            
+            response_placeholder.markdown(response.text)
+            st.session_state.messages.append({"role": "assistant", "content": response.text})
+            st.rerun()
+            
+        except Exception as e:
+            response_placeholder.error(f"Engine connection failed: {str(e)}")
