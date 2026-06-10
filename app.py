@@ -64,7 +64,7 @@ st.markdown("""
 
 # 3. Secure Key Configuration (Hardcoded for your local system run)
 # PASTE YOUR API KEY INSIDE THE QUOTES BELOW ON YOUR COMPUTER:
-GEMINI_API_KEY = "YOUR_API_KEY_HERE"
+GEMINI_API_KEY = "AQ.Ab8RN6LrJWF71BqNTDthIzwnBmOrOVJt8s7FAcjXLluCV7x7IA"
 
 # 4. Sidebar Controls
 with st.sidebar:
