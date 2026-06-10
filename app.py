@@ -1,302 +1,320 @@
-import streamlit as st
-import random
-import string
-import pandas as pd
 import os
-from datetime import datetime
+import streamlit as st
+from dotenv import load_dotenv
 
-st.set_page_config(page_title="CBSE Results 2025", layout="centered")
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.vectorstores import FAISS
+from langchain_google_genai import (
+    GoogleGenerativeAIEmbeddings,
+    ChatGoogleGenerativeAI,
+)
+from langchain.chains.question_answering import load_qa_chain
+from langchain.prompts import PromptTemplate
 
-# ------------------- STYLING -------------------
+from pypdf import PdfReader
+
+# ======================================
+# PAGE CONFIG
+# ======================================
+
+st.set_page_config(
+    page_title="GyanMasti.ai",
+    page_icon="📚",
+    layout="wide"
+)
+
+load_dotenv()
+
+# ======================================
+# CUSTOM CSS
+# ======================================
+
 st.markdown("""
 <style>
-.header {
-    background-color: #00a6a6;
-    padding: 15px;
-    color: white;
-    font-size: 22px;
-    font-weight: bold;
+
+.main-title{
     text-align:center;
+    font-size:48px;
+    font-weight:bold;
+    color:#00C9A7;
 }
-.title {
-    text-align: center;
-    font-size: 26px;
-    font-weight: bold;
-    margin-top: 10px;
+
+.sub-title{
+    text-align:center;
+    font-size:18px;
+    color:gray;
+    margin-bottom:30px;
 }
-.box {
-    border: 1px solid #ccc;
-    padding: 25px;
-    border-radius: 10px;
-    background-color: #f9f9f9;
-}
-.captcha {
-    font-size: 20px;
-    font-weight: bold;
-    background-color: navy;
-    color: white;
-    padding: 5px 10px;
-    display: inline-block;
-}
-.result-box {
-    padding:20px;
+
+.chat-box{
     border-radius:10px;
-    background-color:white;
-    border:2px solid #ddd;
+    padding:10px;
 }
-.pass {
-    color:green;
-    font-weight:bold;
-}
-.fail {
-    color:red;
-    font-weight:bold;
-}
+
 </style>
 """, unsafe_allow_html=True)
 
-# ------------------- HEADER -------------------
+# ======================================
+# HEADER
+# ======================================
+
 st.markdown(
-    '<div class="header">Central Board of Secondary Education</div>',
+    '<p class="main-title">📚 GyanMasti.ai</p>',
     unsafe_allow_html=True
 )
 
-# ------------------- EXCEL FILE -------------------
-EXCEL_FILE = "searched_results.xlsx"
+st.markdown(
+    '<p class="sub-title">Learn Smarter • Revise Faster • Score Better</p>',
+    unsafe_allow_html=True
+)
 
-# ------------------- SUBJECTS -------------------
-subjects = [
-    "English Core",
-    "Physics",
-    "Chemistry",
-    "Mathematics",
-    "Computer Science"
-]
+# ======================================
+# PDF READER
+# ======================================
 
-# ------------------- CAPTCHA -------------------
-def generate_captcha():
-    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+def get_pdf_text(pdf_docs):
 
-def normalize_dob(dob):
-    return dob.replace(".", "/").replace("-", "/").strip()
+    text = ""
 
-# ------------------- RANDOM RESULT -------------------
-def generate_result():
+    for pdf in pdf_docs:
+        pdf_reader = PdfReader(pdf)
 
-    marks_data = []
+        for page in pdf_reader.pages:
+            text += page.extract_text()
 
-    overall_pass = True
-    total = 0
+    return text
 
-    for sub in subjects:
+# ======================================
+# TEXT CHUNKS
+# ======================================
 
-        theory = random.randint(20, 70)
-        practical = random.randint(15, 30)
+def get_text_chunks(text):
 
-        obtained = theory + practical
-
-        status = "PASS"
-
-        if obtained < 33:
-            status = "FAIL"
-            overall_pass = False
-
-        total += obtained
-
-        marks_data.append({
-            "Subject": sub,
-            "Theory": theory,
-            "Practical": practical,
-            "Total": obtained,
-            "Status": status
-        })
-
-    percentage = round(total / 5, 2)
-
-    final_status = "PASS" if overall_pass else "FAIL"
-
-    return marks_data, total, percentage, final_status
-
-# ------------------- SAVE TO EXCEL -------------------
-def save_to_excel(roll, school, admit, dob, percentage, final_status):
-
-    data = {
-        "Roll Number": [roll],
-        "School Number": [school],
-        "Admit Card ID": [admit],
-        "DOB": [dob],
-        "Percentage": [percentage],
-        "Result": [final_status],
-        "Search Time": [datetime.now().strftime("%d-%m-%Y %H:%M:%S")]
-    }
-
-    df_new = pd.DataFrame(data)
-
-    if os.path.exists(EXCEL_FILE):
-        df_old = pd.read_excel(EXCEL_FILE)
-        df_final = pd.concat([df_old, df_new], ignore_index=True)
-    else:
-        df_final = df_new
-
-    df_final.to_excel(EXCEL_FILE, index=False)
-
-# ------------------- SESSION STATE -------------------
-if "captcha" not in st.session_state:
-    st.session_state.captcha = generate_captcha()
-
-if "submitted" not in st.session_state:
-    st.session_state.submitted = False
-
-if "result_data" not in st.session_state:
-    st.session_state.result_data = None
-
-# ------------------- RESULT PAGE -------------------
-if st.session_state.submitted:
-
-    marks_data, total, percentage, final_status = st.session_state.result_data
-
-    st.markdown(
-        '<div class="title">Senior School Certificate Examination (Class XII) Results 2025</div>',
-        unsafe_allow_html=True
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=1000,
+        chunk_overlap=200
     )
 
-    st.markdown('<div class="result-box">', unsafe_allow_html=True)
+    chunks = splitter.split_text(text)
 
-    st.write("### Candidate Details")
-    st.write("**Name :** Candidate")
-    st.write("**Roll Number :**", st.session_state.roll)
-    st.write("**School Number :**", st.session_state.school)
+    return chunks
 
-    st.write("---")
+# ======================================
+# VECTOR STORE
+# ======================================
 
-    st.write("### Marks Statement")
+def get_vector_store(text_chunks):
 
-    table_data = []
-
-    for item in marks_data:
-        table_data.append({
-            "Subject": item["Subject"],
-            "Theory": item["Theory"],
-            "Practical": item["Practical"],
-            "Total": item["Total"],
-            "Result": item["Status"]
-        })
-
-    df = pd.DataFrame(table_data)
-
-    st.table(df)
-
-    st.write("---")
-
-    st.write(f"### Total Marks : {total} / 500")
-    st.write(f"### Percentage : {percentage}%")
-
-    if final_status == "PASS":
-        st.markdown(
-            '<h2 class="pass">RESULT : PASS ✅</h2>',
-            unsafe_allow_html=True
-        )
-    else:
-        st.markdown(
-            '<h2 class="fail">RESULT : FAIL ❌</h2>',
-            unsafe_allow_html=True
-        )
-
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    if st.button("🔙 Search Another Result"):
-        st.session_state.submitted = False
-        st.session_state.captcha = generate_captcha()
-        st.rerun()
-
-# ------------------- FORM PAGE -------------------
-else:
-
-    st.markdown(
-        '<div class="title">Senior School Certificate Examination (Class XII) Results 2025</div>',
-        unsafe_allow_html=True
+    embeddings = GoogleGenerativeAIEmbeddings(
+        model="models/embedding-001"
     )
 
-    with st.container():
+    vector_store = FAISS.from_texts(
+        text_chunks,
+        embedding=embeddings
+    )
 
-        st.markdown('<div class="box">', unsafe_allow_html=True)
+    vector_store.save_local("faiss_index")
 
-        roll = st.text_input("Your Roll Number")
-        school = st.text_input("Your School Number")
-        admit = st.text_input("Admit Card ID")
-        dob = st.text_input("Date of Birth (DD/MM/YYYY)")
-        pin_input = st.text_input("Enter Security Pin (case sensitive)")
+# ======================================
+# PROMPT
+# ======================================
 
-        col1, col2 = st.columns([1, 4])
+def get_conversational_chain():
 
-        with col1:
-            st.markdown(
-                f'<div class="captcha">{st.session_state.captcha}</div>',
-                unsafe_allow_html=True
-            )
+    prompt_template = """
 
-        with col2:
-            if st.button("🔄 Refresh"):
-                st.session_state.captcha = generate_captcha()
+You are GyanMasti.ai.
 
-        col3, col4 = st.columns(2)
+Answer the question using only the uploaded study material.
 
-        with col3:
-            submit = st.button("Submit")
+Rules:
 
-        with col4:
-            reset = st.button("Reset")
+1. Use uploaded notes first.
+2. If answer not found, say:
+   "I could not find this information in the uploaded notes."
+3. Explain in easy language.
+4. Use bullet points.
+5. Mention important exam points.
+6. Do not hallucinate.
 
-        st.markdown("</div>", unsafe_allow_html=True)
+Context:
+{context}
 
-    # ------------------- VALIDATION -------------------
-    if submit:
+Question:
+{question}
 
-        dob_clean = normalize_dob(dob)
+Answer:
 
-        if (
-            roll.strip() != "" and
-            school.strip() != "" and
-            admit.strip() != "" and
-            dob_clean != "" and
-            pin_input.strip() == st.session_state.captcha
-        ):
+"""
 
-            # Generate random marks
-            result_data = generate_result()
+    model = ChatGoogleGenerativeAI(
+        model="gemini-2.5-pro",
+        temperature=0.3
+    )
 
-            # Save in session
-            st.session_state.result_data = result_data
+    prompt = PromptTemplate(
+        template=prompt_template,
+        input_variables=["context", "question"]
+    )
 
-            # Save student details
-            st.session_state.roll = roll
-            st.session_state.school = school
+    chain = load_qa_chain(
+        model,
+        chain_type="stuff",
+        prompt=prompt
+    )
 
-            # Save to Excel
-            save_to_excel(
-                roll,
-                school,
-                admit,
-                dob_clean,
-                result_data[2],
-                result_data[3]
-            )
+    return chain
 
-            st.session_state.submitted = True
-            st.rerun()
+# ======================================
+# USER QUESTION
+# ======================================
 
-        else:
-            st.error("❌ Please fill all details correctly and enter valid captcha.")
+def user_input(user_question):
 
-    if reset:
-        st.session_state.captcha = generate_captcha()
-        st.rerun()
+    embeddings = GoogleGenerativeAIEmbeddings(
+        model="models/embedding-001"
+    )
 
-# ------------------- DISCLAIMER -------------------
-st.markdown("""
----
-**Disclaimer:** Neither NIC nor CBSE is responsible for any inadvertent
-error that may have crept in the results being published on Net.
-The results published on net are for immediate information to the examinees.
-These cannot be treated as original mark sheets.
+    db = FAISS.load_local(
+        "faiss_index",
+        embeddings,
+        allow_dangerous_deserialization=True
+    )
+
+    docs = db.similarity_search(
+        user_question,
+        k=4
+    )
+
+    chain = get_conversational_chain()
+
+    response = chain(
+        {
+            "input_documents": docs,
+            "question": user_question
+        },
+        return_only_outputs=True
+    )
+
+    return response["output_text"]
+
+# ======================================
+# CHAT HISTORY
+# ======================================
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+# ======================================
+# SIDEBAR
+# ======================================
+
+with st.sidebar:
+
+    st.header("📂 Upload Notes")
+
+    pdf_docs = st.file_uploader(
+        "Upload PDFs",
+        accept_multiple_files=True
+    )
+
+    if st.button("🚀 Process PDFs"):
+
+        with st.spinner("Reading PDFs..."):
+
+            raw_text = get_pdf_text(pdf_docs)
+
+            chunks = get_text_chunks(raw_text)
+
+            get_vector_store(chunks)
+
+        st.success("PDFs Processed Successfully!")
+
+    st.markdown("---")
+
+    st.markdown("""
+### Features
+
+✅ Multiple PDFs
+
+✅ Ask Questions
+
+✅ Revision Notes
+
+✅ Exam Preparation
+
+✅ AI Tutor
+
+✅ Chat History
+
 """)
+
+# ======================================
+# CHAT DISPLAY
+# ======================================
+
+for message in st.session_state.messages:
+
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+# ======================================
+# USER INPUT
+# ======================================
+
+question = st.chat_input(
+    "Ask anything from your notes..."
+)
+
+if question:
+
+    st.session_state.messages.append(
+        {
+            "role":"user",
+            "content":question
+        }
+    )
+
+    with st.chat_message("user"):
+        st.markdown(question)
+
+    with st.chat_message("assistant"):
+
+        with st.spinner("Thinking..."):
+
+            try:
+
+                answer = user_input(question)
+
+            except:
+
+                answer = """
+Please upload and process PDFs first.
+"""
+
+            st.markdown(answer)
+
+    st.session_state.messages.append(
+        {
+            "role":"assistant",
+            "content":answer
+        }
+    )
+
+# ======================================
+# FOOTER
+# ======================================
+
+st.markdown("---")
+
+st.markdown(
+"""
+<center>
+
+Made with ❤️ by GyanMasti.ai
+
+</center>
+""",
+unsafe_allow_html=True
+)
