@@ -7,99 +7,188 @@ st.set_page_config(
     page_title="GYANMASTI.AI",
     page_icon="🧠",
     layout="centered",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed" # Kept clean by default
 )
 
-# 2. Sidebar / Dashboard Controls
-with st.sidebar:
-    st.markdown("## ⚙️ Control Panel")
-    st.markdown("Adjust settings to test interface behavior.")
+# 2. Inject Custom CSS for Advanced UI/UX & Aesthetics
+st.markdown("""
+    <style>
+    /* Main Background & Font Styling */
+    @import url('https://googleapis.com');
     
-    # AI Personality Selector
-    ai_tone = st.selectbox(
-        "AI Personality Mode",
-        ["Standard Tech", "Sarcastic Genius", "Ultra Professional", "Motivational Coach"]
+    html, body, [data-testid="stAppViewContainer"] {
+        font-family: 'Inter', sans-serif;
+        background-color: #0E1117;
+    }
+    
+    /* Elegant Title Glow Gradient */
+    .title-gradient {
+        background: linear-gradient(90deg, #FF4B4B, #852DF4, #4A00E0);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-size: 3rem !important;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 0px;
+        padding-bottom: 0px;
+        letter-spacing: -1px;
+    }
+    
+    .subtitle-text {
+        text-align: center;
+        color: #A0AEC0;
+        font-size: 1.1rem;
+        margin-top: -10px;
+        margin-bottom: 30px;
+        font-weight: 300;
+    }
+    
+    /* Clean Cards for Prompt Hints */
+    .hint-card {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 15px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .hint-card:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: #852DF4;
+        transform: translateY(-2px);
+    }
+    
+    /* Chat bubbles redesign tweaks */
+    [data-testid="stChatMessage"] {
+        background-color: rgba(255, 255, 255, 0.03) !important;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        padding: 1rem;
+        margin-bottom: 10px;
+    }
+    
+    /* Sidebar Styling */
+    [data-testid="stSidebar"] {
+        background-color: #0A0C10;
+        border-right: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    /* Custom divider line */
+    .glow-divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(133, 45, 244, 0.3), transparent);
+        margin: 25px 0;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# 3. Sidebar Layout (For Configuration Controls)
+with st.sidebar:
+    st.markdown("### ⚙️ Engine Settings")
+    ai_tone = st.select_slider(
+        "Model Persona",
+        options=["Creative", "Balanced", "Precise"],
+        value="Balanced"
     )
     
-    # Creativity slider mock
-    st.slider("Creativity (Temperature)", 0.0, 1.0, 0.7)
-    
-    # System Status Indicator
     st.markdown("---")
-    st.markdown("### 🖥️ Engine Status")
-    st.success("UI Interface: Active")
-    st.warning("API Engine: Demo Mode (Offline)")
+    st.markdown("### 🧬 Developer Info")
+    st.markdown("**Creator:** Geetansh Shukla")
+    st.markdown("**Status:** UI/UX Prototype")
     
-    # Clear Chat Button
-    if st.button("🧹 Clear Chat History", use_container_width=True):
+    if st.button("🧹 Clear Conversation", use_container_width=True):
         st.session_state.messages = []
         st.rerun()
 
-# 3. Main App Header & Branding
-st.markdown("<h1 style='text-align: center; margin-bottom: 0;'>🧠 GYANMASTI.AI</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #888888; font-size: 1.1rem; margin-top: 0;'>Powered by Geetansh Shukla</p>", unsafe_allow_html=True)
-st.markdown("---")
+# 4. Custom App Header & Branding (HTML + CSS Engine)
+st.markdown('<h1 class="title-gradient">GYANMASTI.AI</h1>', unsafe_allow_html=True)
+st.markdown('<p class="subtitle-text">⚡ Powered by Geetansh Shukla</p>', unsafe_allow_html=True)
 
-# 4. Initialize Demo Data & Message States
+# 5. Initialize Memory Store
 if "messages" not in st.session_state:
-    st.session_state.messages = [
-        {"role": "assistant", "content": "Welcome to **GYANMASTI.AI**! 👋 I am currently running in **Demo UI Mode** (no API required). Ask me anything to test out my slick streaming chat animation!"}
-    ]
+    st.session_state.messages = []
 
-# Mock Responses Database based on Tone selection
-MOCK_RESPONSES = {
-    "Standard Tech": [
-        "That is a fascinating concept. From a technological standpoint, implementing this would require robust system architecture.",
-        "Processing request... parsed text successfully. The theoretical outcome looks highly optimal.",
-        "Interesting question! If we hook up the live API later, I will give you real-time data on that exact topic."
-    ],
-    "Sarcastic Genius": [
-        "Oh, wow. What an absolute groundbreaking question. Let me strain my simulated circuits to answer that.",
-        "I could give you a brilliant answer, but I am currently running on a fake offline brain. Try again later!",
-        "Error 404: True intelligence not found. (Just kidding, the UI works perfectly, but my API is still asleep)."
-    ],
-    "Ultra Professional": [
-        "Thank you for your inquiry. This specific matter warrants a detailed analytical review once backend integrations are completed.",
-        "An excellent proposition. We look forward to executing this request with absolute precision in production.",
-        "Please note that under current demo parameters, historical data points are simulated for presentation purposes."
-    ],
-    "Motivational Coach": [
-        "Boom! What an incredible question! You are pushing the boundaries of what **GYANMASTI.AI** can achieve!",
-        "Remember, every great application starts with a beautiful interface just like this one. Keep building!",
-        "That is the spirit! Geetansh Shukla built this beautiful framework, and you are ready to conquer the next step!"
-    ]
+# 6. Welcome Banner & Pre-built Hints (UX element to reduce user typing effort)
+if len(st.session_state.messages) == 0:
+    st.markdown("""
+    <div style='background: rgba(133, 45, 244, 0.1); border-left: 4px solid #852DF4; padding: 15px; border-radius: 4px; margin-bottom: 25px;'>
+        ✨ <strong>Welcome to the Future!</strong> GYANMASTI.AI interface is ready. Type a prompt below or use one of the aesthetic quick-start templates to test the simulated engine.
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("#### 💡 Quick Start Templates")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if st.button("🚀 Explain Quantum Physics in simple terms", use_container_width=True):
+            st.session_state.active_prompt = "Explain Quantum Physics in simple terms"
+            
+        if st.button("📝 Write a catchy marketing slogan for a tech brand", use_container_width=True):
+            st.session_state.active_prompt = "Write a catchy marketing slogan for a tech brand"
+            
+    with col2:
+        if st.button("💻 Debug a Python loops efficiency problem", use_container_width=True):
+            st.session_state.active_prompt = "Debug a Python loops efficiency problem"
+            
+        if st.button("🎨 Suggest a stunning color palette for an AI app", use_container_width=True):
+            st.session_state.active_prompt = "Suggest a stunning color palette for an AI app"
+
+st.markdown('<div class="glow-divider"></div>', unsafe_allow_html=True)
+
+# Mock Answers Engine
+MOCK_LIBRARY = {
+    "Creative": "Your creative spark is ready! Under this mode, I will formulate answers rich in vocabulary, vivid analogies, and unique out-of-the-box system concepts. When Geetansh binds my live API, I'll build worlds for you!",
+    "Balanced": "Processing logic standard. Striking the perfect equilibrium between technical accuracy and everyday human-understandable conversation. This is the optimal mode for production workflows.",
+    "Precise": "Fact-check sequence initiated. Prioritizing structured tables, itemized bullet points, micro-precision data parameters, and objective breakdowns. Zero conversational filler included."
 }
 
-# 5. Render Chat History
+# 7. Render Chat Feed
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# 6. Chat Input Logic
-if user_query := st.chat_input("Ask GYANMASTI.AI anything..."):
-    
+# 8. Interactive Prompt Trigger Handler
+# Detect if user clicked on any Quick Template buttons
+default_input = ""
+if "active_prompt" in st.session_state and st.session_state.active_prompt:
+    default_input = st.session_state.active_prompt
+    st.session_state.active_prompt = None # Clear it immediately
+
+# 9. Main User Chat Field
+if user_query := st.chat_input("Message GYANMASTI.AI...", key="chat_box"):
+    # If standard text box input came through, execute it
+    current_prompt = user_query
+elif default_input:
+    # If a button template was clicked, execute it instead
+    current_prompt = default_input
+else:
+    current_prompt = None
+
+if current_prompt:
     # Render user query instantly
     with st.chat_message("user"):
-        st.markdown(user_query)
-    st.session_state.messages.append({"role": "user", "content": user_query})
+        st.markdown(current_prompt)
+    st.session_state.messages.append({"role": "user", "content": current_prompt})
 
-    # Render simulated assistant reply
+    # Render simulated assistant response
     with st.chat_message("assistant"):
         response_placeholder = st.empty()
         
-        # Pick a random response matching the selected personality
-        raw_response = random.choice(MOCK_RESPONSES[ai_tone])
-        full_response = f"**[Demo Mode - {ai_tone}]**\n\n{raw_response}"
+        # Pull response based on mode
+        body_text = MOCK_LIBRARY[ai_tone]
+        full_response = f"✨ **[Mode: {ai_tone}]**\n\nYou asked: *\"{current_prompt}\"*\n\nHere is my aesthetic sample output: {body_text}"
         
-        # Simulate typing/streaming effect word by word
+        # Word-by-word premium stream effect animation
         displayed_text = ""
         for word in full_response.split(" "):
             displayed_text += word + " "
-            time.sleep(0.06)  # Speeds up/slows down typing effect
-            response_placeholder.markdown(displayed_text + "▌")
+            time.sleep(0.04)  # Natural flowing smooth delay
+            response_placeholder.markdown(displayed_text + "▒")
             
-        # Remove typing cursor when done
+        # Final clean render
         response_placeholder.markdown(displayed_text)
         
-    # Save assistant message to session memory
+    # Append to state history
     st.session_state.messages.append({"role": "assistant", "content": displayed_text})
+    st.rerun() # Clean update to wipe old prompt flags
