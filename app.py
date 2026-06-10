@@ -63,7 +63,7 @@ st.markdown("""
 
 # 3. Secure Production API Key Configuration
 API_KEY = "AQ.Ab8RN6LrJWF71BqNTDthIzwnBmOrOVJt8s7FAcjXLluCV7x7IA"
-genai.configure(api_key=API_KEY)
+genai.configure(api_key=AQ.Ab8RN6JIEADWCwjZ5FBnQqWUHlksNBsx-r1ERCp8b8U1rGjPKQ)
 
 # 4. Reference your trained model path
 MODEL_PATH = "tunedModels/gyanmasti-core-v1"
