@@ -248,12 +248,10 @@ if user_query := st.chat_input("Inquire anything from GyanMasti.ai..."):
                 for chunk in response_stream:
                     if chunk.text:
                         assistant_response += chunk.text
-                        response_placeholder.markdown(
-                            f'<div class="message-row assistant">'
+                        response_placeholder.markdown(f'<div class="message-row assistant">'
                             f'<div class="message-bubble">{assistant_response}🧭</div>'
                             f'</div>',
-                            unsafe_allow_html=True
-                        )
+                            unsafe_allow_html=True)
                 
                 # Render clean finalized text without loading cursor emoji
                 response_placeholder.markdown(
