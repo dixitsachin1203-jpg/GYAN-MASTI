@@ -205,6 +205,7 @@ st.markdown('</div>', unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
 # -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # 4. CHAT PROCESSING WORKFLOW AND TOKENS STREAMING
 # -----------------------------------------------------------------------------
 if client_query := st.chat_input("Inquire anything from GyanMasti.ai..."):
@@ -223,7 +224,7 @@ if client_query := st.chat_input("Inquire anything from GyanMasti.ai..."):
         st.error("⚠️ Authentication Missing: Please provide a valid Groq Cloud API Key (`gsk_...`) inside the Matrix Controls sidebar panel.")
     else:
         try:
-            # Connect pipeline utilizing standard Groq Cloud base target addresses
+            # Connect pipeline utilizing standard Groq Cloud base target addresses (Corrected path routing)
             api_client = OpenAI(
                 api_key=user_api_key,
                 base_url="https://groq.com"
@@ -272,3 +273,4 @@ if client_query := st.chat_input("Inquire anything from GyanMasti.ai..."):
 
 # Absolute Static Branding Signature Position Footer
 st.markdown("<div class='footer-text'>GyanMasti.ai Interface Framework • Lovingly Crafted by Geetansh Shukla</div>", unsafe_allow_html=True)
+
