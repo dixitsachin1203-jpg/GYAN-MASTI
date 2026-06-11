@@ -1,273 +1,87 @@
-# app.py
+import streamlit as tf
+from google import genai
+from google.genai import types
+import os
 
-```python
-import streamlit as st
-import google.generativeai as genai
-from datetime import datetime
-
-# =====================================================
-# PAGE CONFIG
-# =====================================================
-
-st.set_page_config(
-    page_title="GYANMASTI.AI",
-    page_icon="🎓",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-
-# =====================================================
-# GEMINI API KEY
-# =====================================================
-
+# Paste your actual Google Gemini API key inside the quotes below:
 GEMINI_API_KEY = "AQ.Ab8RN6IJyltp_ScFjnb4m7PNw3vnS5XS8FQu6vKCORUz3sUQmA"
 
-# =====================================================
-# GEMINI INITIALIZATION
-# =====================================================
+# Automatically inject the key into the system environment memory
+os.environ["GEMINI_API_KEY"] = GEMINI_API_KEY
 
-model = None
+# 1. Page Configuration
+tf.set_page_config(
+    page_title="gyanmasti.ai",
+    page_icon="🧠",
+    layout="centered"
+)
 
-if GEMINI_API_KEY.strip():
-
-    try:
-
-        genai.configure(api_key=GEMINI_API_KEY)
-
-        model = genai.GenerativeModel(
-            "gemini-2.5-flash"
-        )
-
-    except Exception as e:
-
-        st.sidebar.error(f"Gemini Error: {e}")
-
-# =====================================================
-# CUSTOM CSS
-# =====================================================
-
-st.markdown("""
-<style>
-
-.stApp{
-background: linear-gradient(135deg,#020617,#0f172a,#111827);
-}
-
-.main-title{
-text-align:center;
-font-size:60px;
-font-weight:800;
-color:white;
-margin-bottom:0px;
-}
-
-.sub-title{
-text-align:center;
-font-size:20px;
-color:#cbd5e1;
-margin-top:0px;
-}
-
-.creator{
-text-align:center;
-color:#38bdf8;
-font-size:16px;
-margin-bottom:25px;
-}
-
-footer{
-visibility:hidden;
-}
-
-</style>
-""", unsafe_allow_html=True)
-
-# =====================================================
-# SESSION STATE
-# =====================================================
-
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-# =====================================================
-# SIDEBAR
-# =====================================================
-
-with st.sidebar:
-
-    st.title("🎓 GYANMASTI.AI")
-
-    st.markdown("---")
-
-    st.subheader("Study Mode")
-
-    study_mode = st.selectbox(
-        "Select Mode",
-        [
-            "General Learning",
-            "School",
-            "CBSE",
-            "CA Foundation",
-            "CA Intermediate",
-            "CA Final",
-            "College"
-        ]
-    )
-
-    st.markdown("---")
-
-    uploaded_file = st.file_uploader(
-        "Upload Study Material",
-        type=["pdf", "txt", "docx"]
-    )
-
-    st.markdown("---")
-
-    if st.button("🗑 Clear Chat"):
-        st.session_state.messages = []
-        st.rerun()
-
-    st.markdown("---")
-
-    if model:
-        st.success("🟢 Gemini Connected")
+# 2. Sidebar Configuration (Clean & Simple)
+with tf.sidebar:
+    tf.title("🚀 Status")
+    tf.write("Welcome to **gyanmasti.ai**!")
+    tf.write("Powered by **Geetansh Shukla**.")
+    tf.divider()
+    
+    # Verify the code has your key
+    if GEMINI_API_KEY and GEMINI_API_KEY != "PASTE_YOUR_API_KEY_HERE":
+        tf.success("Connected to Gemini API")
     else:
-        st.warning("🟡 Add Gemini API Key")
-
-    st.markdown("---")
-
-    st.info(
-        """
-        GYANMASTI.AI
+        tf.error("Please replace 'PASTE_YOUR_API_KEY_HERE' with your real key.")
         
-        Educational AI Assistant
-        
-        Powered by Gemini
-        
-        Created by Geetansh Shukla
-        """
-    )
+    tf.divider()
+    tf.caption("Built with Streamlit & Google GenAI SDK")
 
-# =====================================================
-# HEADER
-# =====================================================
+# 3. Main Interface Header
+tf.title("🧠 gyanmasti.ai")
+tf.subheader("Powered by **Geetansh Shukla**")
 
-st.markdown(
-    '<div class="main-title">🎓 GYANMASTI.AI</div>',
-    unsafe_allow_html=True
-)
+# 4. Chat History Initialization
+if "messages" not in tf.session_state:
+    tf.session_state.messages = []
 
-st.markdown(
-    '<div class="sub-title">Learn Smarter • Study Faster • AI Powered Education</div>',
-    unsafe_allow_html=True
-)
+# Display previous chat messages
+for message in tf.session_state.messages:
+    with tf.chat_message(message["role"]):
+        tf.markdown(message["content"])
 
-st.markdown(
-    '<div class="creator">⚡ Powered by Geetansh Shukla</div>',
-    unsafe_allow_html=True
-)
+# 5. Model Logic & User Input
+if prompt := tf.chat_input("Ask gyanmasti.ai anything..."):
+    
+    # Display user message immediately
+    with tf.chat_message("user"):
+        tf.markdown(prompt)
+    tf.session_state.messages.append({"role": "user", "content": prompt})
 
-# =====================================================
-# CHAT HISTORY
-# =====================================================
-
-for message in st.session_state.messages:
-
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-
-# =====================================================
-# CHAT INPUT
-# =====================================================
-
-prompt = st.chat_input(
-    "Ask GYANMASTI.AI anything..."
-)
-
-if prompt:
-
-    st.session_state.messages.append(
-        {
-            "role": "user",
-            "content": prompt
-        }
-    )
-
-    with st.chat_message("user"):
-        st.markdown(prompt)
-
-    with st.chat_message("assistant"):
-
-        if model:
-
-            try:
-
-                response = model.generate_content(
-                    f"""
-                    You are GYANMASTI.AI,
-                    an educational AI assistant.
-
-                    Study Mode:
-                    {study_mode}
-
-                    User Question:
-                    {prompt}
-                    """
+    # Error handling if key is missing
+    if not GEMINI_API_KEY or GEMINI_API_KEY == "PASTE_YOUR_API_KEY_HERE":
+        with tf.chat_message("assistant"):
+            tf.error("API Key missing! Edit line 6 in app.py to include your key.")
+    else:
+        try:
+            # Initialize client (picks up key from os.environ automatically)
+            client = genai.Client()
+            
+            # Request streaming response from Gemini 2.5 Flash
+            with tf.chat_message("assistant"):
+                message_placeholder = tf.empty()
+                full_response = ""
+                
+                response_stream = client.models.generate_content_stream(
+                    model='gemini-2.5-flash',
+                    contents=prompt
                 )
-
-                answer = response.text
-
-            except Exception as e:
-
-                answer = f"❌ Gemini Error: {e}"
-
-        else:
-
-            answer = """
-🔑 Gemini API Key Required
-
-Open app.py
-
-Find:
-
-GEMINI_API_KEY = ""
-
-Paste your Gemini API key between the quotes.
-
-Restart the application.
-"""
-
-        st.markdown(answer)
-
-    st.session_state.messages.append(
-        {
-            "role": "assistant",
-            "content": answer
-        }
-    )
-
-# =====================================================
-# FOOTER
-# =====================================================
-
-st.markdown("---")
-
-current_year = datetime.now().year
-
-st.markdown(
-f"""
-<center>
-
-### 🎓 GYANMASTI.AI
-
-Learn • Revise • Succeed
-
-Powered by Geetansh Shukla
-
-© {current_year}
-
-</center>
-""",
-unsafe_allow_html=True
-)
-```
+                
+                # Render chunks in real-time
+                for chunk in response_stream:
+                    full_response += chunk.text
+                    message_placeholder.markdown(full_response + "▌")
+                
+                message_placeholder.markdown(full_response)
+            
+            # Save assistant response to session history
+            tf.session_state.messages.append({"role": "assistant", "content": full_response})
+            
+        except Exception as e:
+            with tf.chat_message("assistant"):
+                tf.error(f"An error occurred: {str(e)}")
