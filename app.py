@@ -384,14 +384,16 @@ def check_creator_dataset(prompt: str) -> str:
     return None
 
 def get_api_key():
-    """Retrieve API key (always defaults to Geetansh Shukla's key)."""
-    return DEFAULT_API_KEY
+    """Retrieve API key prioritizing Session State memory."""
+    return st.session_state.get("api_key", DEFAULT_API_KEY).strip()
 
 # Session state initialization
 if "messages" not in st.session_state:
     st.session_state.messages = []
 if "preset_prompt" not in st.session_state:
     st.session_state.preset_prompt = None
+if "api_key" not in st.session_state:
+    st.session_state.api_key = DEFAULT_API_KEY
 if "selected_theme" not in st.session_state:
     st.session_state.selected_theme = "Midnight Nebula 🌌"
 
@@ -506,6 +508,15 @@ with st.sidebar.expander("⚙️ Basic Settings", expanded=False):
         value=2048,
         step=256,
         help="Maximum size of response tokens."
+    )
+
+# 6. Change API Key (Optional override)
+with st.sidebar.expander("🔑 Change API Key (Optional)", expanded=False):
+    st.text_input(
+        "Google Gemini API Key:",
+        type="password",
+        key="api_key",
+        help="Paste a new API Key starting with AIzaSy... to override the default key."
     )
 
 # Sidebar Footer
