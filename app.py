@@ -257,10 +257,17 @@ def inject_custom_css(theme):
             color: #F8FAFC !important;
         }}
         
-        /* Hiding core Streamlit branding headers and footers */
+        /* Hiding core Streamlit branding headers and footers, preserving sidebar toggle */
         #MainMenu {{visibility: hidden;}}
         footer {{visibility: hidden;}}
-        header {{visibility: hidden;}}
+        header[data-testid="stHeader"] {{
+            background: transparent !important;
+        }}
+        div[data-testid="stDecorator"],
+        div[data-testid="stHeaderDeployButton"],
+        button[data-testid="stHeaderMenuButton"] {{
+            display: none !important;
+        }}
         
         /* Glowing Hero Banner */
         .hero-banner {{
@@ -458,8 +465,8 @@ active_theme = THEMES[st.session_state.selected_theme]
 with st.sidebar.expander("⚙️ Basic Settings", expanded=False):
     # Model selector
     model_options = {
-        "Geetansh SHukla Special": "gemini-1.5-flash",
-        "Gyani AI": "gemini-1.5-pro",
+        "Gemini 1.5 Flash (Fast)": "gemini-1.5-flash",
+        "Gemini 1.5 Pro (Analytical)": "gemini-1.5-pro",
     }
     selected_label = st.selectbox(
         "Model Engine:",
@@ -488,15 +495,12 @@ with st.sidebar.expander("⚙️ Basic Settings", expanded=False):
 
 # 6. API Key Config Section
 with st.sidebar.expander("🔑 API Key Configuration", expanded=False):
-    env_key = os.environ.get("GEMINI_API_KEY", "AQ.Ab8RN6IYxCJ6776e9H95b2VilQz69KYBl9F_VSvlpea5gvsbhg")
-    api_key_input = st.text_input(
+    st.text_input(
         "Google Gemini API Key:",
-        value=st.session_state.api_key,
         type="password",
+        key="api_key",
         help="Google API Key used to generate model outputs."
     )
-    if api_key_input:
-        st.session_state.api_key = api_key_input
 
 # Sidebar Footer
 st.sidebar.markdown(
