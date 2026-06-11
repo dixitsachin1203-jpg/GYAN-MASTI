@@ -122,15 +122,15 @@ with st.sidebar:
     st.markdown("---")
 
     with st.expander("ℹ️ About Us"):
-        st.write("GyanMasti.ai is a premier ultra-modern artificial intelligence interface wrapper module designed to bring advanced open frontier model inference parameters together instantly.")
+        st.write("GyanMasti.ai is Developed by Geetansh Shukla who lives in Baloda Bazar C.G., he is a aspirational Entrepreneur doing Great.")
         
     with st.expander("📞 Contact Us"):
         st.write("Have ideas or feedback regarding project execution pipelines?")
         st.markdown("📩 **Developer Email:** contact@geetanshshukla.com")
 
     with st.expander("❤️ Donate Us"):
-        st.write("Support the computational resource infrastructure framework hosting costs!")
-        st.info("☕ Buy Geetansh Shukla a Coffee • UPI: geetansh@upi")
+        st.write("Support us!")
+        st.info("☕ Buy Geetansh Shukla a Premium Starbuks Coffee • UPI: geetansh@upi")
 
     st.markdown(
         "<div style='color: #6a6a85; font-size:0.8rem; text-align:center; margin-top:2rem;'>GyanMasti.ai Core • Release v4.0<br>© 2026 Geetansh Shukla</div>", 
