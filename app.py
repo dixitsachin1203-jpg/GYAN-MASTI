@@ -112,9 +112,8 @@ with st.sidebar:
         ["llama-3.3-70b-versatile", "llama3-8b-8192", "gemma2-9b-it"],
         index=0
     )
-   creativity_index = st.slider("Temperature Configuration", min_value=0.0, max_value=2.0, value=0.7, step=0.1)
+    creativity_index = st.slider("Temperature Configuration", min_value=0.0, max_value=2.0, value=0.7, step=0.1)
 
-    st.markdown("<h4 style='color:#9b51e0;'>⚙️ Workspace Options</h4>", unsafe_allow_html=True)
     if st.button("Rules: Clear Chat", use_container_width=True):
         st.session_state.messages = []
         st.rerun()
