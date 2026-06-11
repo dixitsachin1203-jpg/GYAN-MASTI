@@ -129,8 +129,8 @@ with st.sidebar:
         st.markdown("📩 **Developer Email:** contact@geetanshshukla.com")
 
     with st.expander("❤️ Donate Us"):
-        st.write("Support the computational resource infrastructure framework hosting costs!")
-        st.info("☕ Buy Geetansh Shukla a Coffee • UPI: geetansh@upi")
+        st.write("Support us")
+        st.info("☕ Buy Geetansh Shukla a Starbuks Premium Coffee • UPI: geetansh@upi")
 
     st.markdown(
         "<div style='color: #6a6a85; font-size:0.8rem; text-align:center; margin-top:2rem;'>GyanMasti.ai Core • Release v4.0<br>© 2026 Geetansh Shukla</div>", 
@@ -154,7 +154,7 @@ if not st.session_state.messages:
     st.markdown(
         '<div class="chat-container">'
         '<div class="message-row assistant">'
-        '<div class="message-bubble">Salutations. I am GyanMasti.ai, engineered by Geetansh Shukla. Powered by high-speed Groq processing clusters. Let\'s build something incredible.</div>'
+        '<div class="message-bubble">Salutations. I am GyanMasti.ai, engineered by Geetansh Shukla. LET'S GET SOME GYAAN WITH MASTI. Let\'s build something incredible.</div>'
         '</div>'
         '</div>',
         unsafe_allow_html=True
