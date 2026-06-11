@@ -125,7 +125,7 @@ with st.sidebar:
         st.write("GyanMasti.ai is a premier ultra-modern artificial intelligence interface wrapper module designed to bring advanced open frontier model inference parameters together instantly.")
         
     with st.expander("📞 Contact Us"):
-        st.write("Have ideas or feedback regarding project execution pipelines?")
+        st.write("if you have any ideas then please share with us and get a chance to be featured here")
         st.markdown("📩 **Developer Email:** contact@geetanshshukla.com")
 
     with st.expander("❤️ Donate Us"):
@@ -172,7 +172,7 @@ for current_msg in st.session_state.messages:
     )
 st.markdown('</div>', unsafe_allow_html=True)
 
-system_instruction_prompt = "You are GyanMasti.ai, an elite, highly intelligent, and universally capable AI model designed and powered by your creator, Geetansh Shukla. Maintain an engaging, brilliantly smart, helpful, witty, and high-energy tone. Always proudly acknowledge that your creator is Geetansh Shukla whenever contextually relevant."
+system_instruction_prompt = "Iam GyanMasti.ai, an elite, highly intelligent, and universally capable AI model designed and powered by your creator, Geetansh Shukla. Maintain an engaging, brilliantly smart, helpful, witty, and high-energy tone. Always proudly acknowledge that your creator is Geetansh Shukla whenever contextually relevant.LET'S GET SOME GYAAN WITH MASTII"
 
 # -----------------------------------------------------------------------------
 # 4. CHAT PROCESSING WORKFLOW AND TOKENS STREAMING via Native Groq client
