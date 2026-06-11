@@ -1,5 +1,5 @@
 import streamlit as st
-from google import genai
+import google.genai as genai
 from google.genai import types
 import os
 import time
@@ -78,8 +78,8 @@ HISTORY_DEMO = {
         {"role": "assistant", "content": "Here is a premium glassmorphic CSS snippet:\n```css\n.card {\n    background: rgba(255, 255, 255, 0.03);\n    backdrop-filter: blur(12px);\n    border: 1px solid rgba(255, 255, 255, 0.06);\n    border-radius: 16px;\n    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);\n}\n```"}
     ],
     "🤖 Gemini Integration Sandbox": [
-        {"role": "user", "content": "How do I stream responses in google-generativeai?"},
-        {"role": "assistant", "content": "You can stream responses by calling `model.generate_content(prompt, stream=True)` and iterating over the response chunks:\n```python\nresponse = model.generate_content(prompt, stream=True)\nfor chunk in response:\n    print(chunk.text)\n```"}
+        {"role": "user", "content": "How do I stream responses in google-genai?"},
+        {"role": "assistant", "content": "You can stream responses by calling `chat.send_message_stream(prompt)` and iterating over the response chunks:\n```python\nresponse = chat.send_message_stream(prompt)\nfor chunk in response:\n    print(chunk.text)\n```"}
     ]
 }
 
@@ -126,29 +126,49 @@ def inject_custom_css(theme):
             letter-spacing: -0.5px;
         }}
         
-        /* Custom Chat bubble styles */
-        div[data-testid="stChatMessage"] {{
+        /* --- WhatsApp-Style Chat bubble alignments --- */
+        
+        /* Align user message row to the right */
+        div[data-testid="stChatMessage"]:has(.user-bubble) {{
+            display: flex !important;
+            flex-direction: row-reverse !important;
+            background-color: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            margin-left: auto !important;
+            margin-right: 0 !important;
+            padding: 5px 0px !important;
+            max-width: 75% !important;
+        }}
+        
+        /* Align assistant message row to the left */
+        div[data-testid="stChatMessage"]:not(:has(.user-bubble)) {{
+            display: flex !important;
+            flex-direction: row !important;
             background-color: rgba(15, 23, 42, 0.45) !important;
             border: 1px solid rgba(255, 255, 255, 0.04) !important;
-            border-radius: 16px !important;
-            padding: 16px 20px !important;
-            margin-bottom: 14px !important;
+            border-radius: 18px 18px 18px 4px !important;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+            margin-right: auto !important;
+            margin-left: 0 !important;
+            padding: 16px 20px !important;
+            max-width: 75% !important;
             backdrop-filter: blur(10px);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }}
         
-        div[data-testid="stChatMessage"]:hover {{
+        div[data-testid="stChatMessage"]:not(:has(.user-bubble)):hover {{
             border-color: {theme['border']} !important;
             box-shadow: 0 10px 30px {theme['shadow']} !important;
             transform: translateY(-2px);
         }}
         
+        /* User bubble content styling */
         .user-bubble {{
             background: {theme['user_bg']};
             border: 1px solid {theme['user_border']} !important;
-            border-radius: 14px;
-            padding: 12px 16px;
+            border-radius: 18px 18px 4px 18px !important;
+            padding: 12px 18px;
             color: #F8FAFC;
             font-size: 1rem;
             line-height: 1.5;
@@ -364,20 +384,14 @@ def check_creator_dataset(prompt: str) -> str:
     return None
 
 def get_api_key():
-    """Retrieve API key prioritizing Session State memory, then environmental fallback."""
-    key = st.session_state.get("api_key", "").strip()
-    if not key:
-        key = os.environ.get("GEMINI_API_KEY", "").strip()
-    return key
+    """Retrieve API key (always defaults to Geetansh Shukla's key)."""
+    return DEFAULT_API_KEY
 
 # Session state initialization
 if "messages" not in st.session_state:
     st.session_state.messages = []
 if "preset_prompt" not in st.session_state:
     st.session_state.preset_prompt = None
-if "api_key" not in st.session_state:
-    # Set prefilled default user API Key
-    st.session_state.api_key = DEFAULT_API_KEY
 if "selected_theme" not in st.session_state:
     st.session_state.selected_theme = "Midnight Nebula 🌌"
 
@@ -494,21 +508,12 @@ with st.sidebar.expander("⚙️ Basic Settings", expanded=False):
         help="Maximum size of response tokens."
     )
 
-# 6. API Key Config Section
-with st.sidebar.expander("🔑 API Key Configuration", expanded=False):
-    st.text_input(
-        "Google Gemini API Key:",
-        type="password",
-        key="api_key",
-        help="Google API Key used to generate model outputs."
-    )
-
 # Sidebar Footer
 st.sidebar.markdown(
     """
     <div class="sidebar-footer">
         <p style="text-align: center; font-size: 0.72rem; color: #64748B; margin: 0;">
-            GYANMASTI v1.2.0
+            GYANMASTI v1.3.0
         </p>
         <p style="text-align: center; font-size: 0.78rem; color: #94A3B8; margin-top: 4px; margin-bottom: 0px;">
             Powered by <b>Geetansh Shukla</b>
@@ -573,7 +578,7 @@ if len(st.session_state.messages) == 0:
             st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
-# Render Chat History
+# Render Chat History (aligned WhatsApp style)
 for msg in st.session_state.messages:
     if msg["role"] == "user":
         with st.chat_message("user", avatar="👤"):
@@ -592,7 +597,7 @@ if user_input:
     # Append user prompt to state
     st.session_state.messages.append({"role": "user", "content": user_input})
     
-    # Render user prompt immediately
+    # Render user prompt immediately (wrapped in user-bubble class)
     with st.chat_message("user", avatar="👤"):
         st.markdown(f'<div class="user-bubble">{user_input}</div>', unsafe_allow_html=True)
         
@@ -613,18 +618,18 @@ if user_input:
             ai_response = static_response
         else:
             api_key = get_api_key()
-            if not api_key:
-                st.warning("⚠️ Google Gemini API Key is missing. Please enter your API Key in the sidebar.", icon="🔑")
-                st.session_state.messages.pop() # Remove user query since response failed
-                st.stop()
-                
-            # Display pulse loader while calling API
-            loader_placeholder = st.markdown(
+            
+            # Display WhatsApp-style typing loader while loading
+            loader_placeholder = st.empty()
+            loader_placeholder.markdown(
                 """
-                <div class="glowing-loader">
-                    <div class="loader-dot"></div>
-                    <div class="loader-dot"></div>
-                    <div class="loader-dot"></div>
+                <div style="display: flex; align-items: center; gap: 8px; font-size: 0.95rem; color: #94A3B8; margin-bottom: 10px;">
+                    <span class="gradient-text" style="font-weight: 600;">GYANMASTI is typing</span>
+                    <div class="glowing-loader" style="margin: 0; display: inline-flex;">
+                        <div class="loader-dot" style="width: 5px; height: 5px; margin: 0 2px;"></div>
+                        <div class="loader-dot" style="width: 5px; height: 5px; margin: 0 2px;"></div>
+                        <div class="loader-dot" style="width: 5px; height: 5px; margin: 0 2px;"></div>
+                    </div>
                 </div>
                 """,
                 unsafe_allow_html=True
@@ -659,10 +664,10 @@ if user_input:
                     config=config
                 )
                 
-                # Send message and get stream
-                response = chat.send_message(user_input, stream=True)
+                # Stream responses using correct SDK method (send_message_stream)
+                response = chat.send_message_stream(user_input)
                 
-                # Remove API call pulse loader
+                # Remove API call loader
                 loader_placeholder.empty()
                 
                 response_placeholder = st.empty()
@@ -676,7 +681,7 @@ if user_input:
                 # Clear loader
                 loader_placeholder.empty()
                 
-                ai_response = f"❌ **Error generating response**: {str(e)}\n\n_Please verify your API key and internet connectivity._"
+                ai_response = f"❌ **Error generating response**: {str(e)}\n\n_Please check your internet connectivity._"
                 st.error(ai_response)
                 
     # Commit AI response to session state and trigger refresh
