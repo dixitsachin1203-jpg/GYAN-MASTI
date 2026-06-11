@@ -31,7 +31,7 @@ else: # Sunset Gold
     user_bubble = "linear-gradient(135deg, #f12711 0%, #f5af19 100%)"
     assistant_border = "rgba(249, 212, 35, 0.25)"
 
-# Premium Ambient Interface Custom CSS Override System
+# Premium Ambient Interface Custom CSS Override System (All CSS braces safely escaped as double curly brackets)
 custom_theme_css = f"""
 <style>
     /* Absolute Base Background Reset */
@@ -142,7 +142,7 @@ custom_theme_css = f"""
         font-size: 0.85rem;
         margin-top: 4rem;
         border-top: 1px solid rgba(255, 255, 255, 0.06);
-        padding-top: 1.2rem;
+        padding-top: 12rem;
     }}
     
     /* Input Field Overrides */
@@ -178,7 +178,7 @@ with st.sidebar:
     # 🎨 Color Theme Interface Customization Options
     st.markdown("<h4 style='color:#00f2fe;'>🎨 Interface Theme</h4>", unsafe_allow_html=True)
     selected_theme = st.selectbox(
-        "Select Active Accent Accent",
+        "Select Active Accent",
         ["Neon Cyberpunk", "Emerald Matrix", "Sunset Gold"],
         index=["Neon Cyberpunk", "Emerald Matrix", "Sunset Gold"].index(st.session_state.theme_color)
     )
@@ -193,7 +193,7 @@ with st.sidebar:
         st.checkbox("Enable Ultra Stream Acceleration Mode", value=True)
         st.checkbox("Store Local Session Diagnostics Log Data", value=False)
     
-    if st.button("🧹 Clear Active Chat History", use_container_width=True):
+    if st.button("Rules: Clear Chat", use_container_width=True):
         st.session_state.messages = []
         st.rerun()
     st.markdown("---")
