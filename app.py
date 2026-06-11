@@ -1,9 +1,13 @@
-import streamlit as st
-import time
+# app.py
 
-# ==========================================
+```python
+import streamlit as st
+import google.generativeai as genai
+from datetime import datetime
+
+# =====================================================
 # PAGE CONFIG
-# ==========================================
+# =====================================================
 
 st.set_page_config(
     page_title="GYANMASTI.AI",
@@ -12,27 +16,35 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ==========================================
-# GEMINI CONFIG (ADD YOUR API LATER)
-# ==========================================
+# =====================================================
+# GEMINI API KEY
+# =====================================================
 
 GEMINI_API_KEY = "AQ.Ab8RN6IJyltp_ScFjnb4m7PNw3vnS5XS8FQu6vKCORUz3sUQmA"
 
-# Uncomment after creating a new Gemini API Key
+# =====================================================
+# GEMINI INITIALIZATION
+# =====================================================
 
-"""
-import google.generativeai as genai
+model = None
 
-genai.configure(api_key=GEMINI_API_KEY)
+if GEMINI_API_KEY.strip():
 
-model = genai.GenerativeModel(
-    "gemini-2.5-flash"
-)
-"""
+    try:
 
-# ==========================================
+        genai.configure(api_key=GEMINI_API_KEY)
+
+        model = genai.GenerativeModel(
+            "gemini-2.5-flash"
+        )
+
+    except Exception as e:
+
+        st.sidebar.error(f"Gemini Error: {e}")
+
+# =====================================================
 # CUSTOM CSS
-# ==========================================
+# =====================================================
 
 st.markdown("""
 <style>
@@ -46,45 +58,40 @@ text-align:center;
 font-size:60px;
 font-weight:800;
 color:white;
-margin-top:10px;
+margin-bottom:0px;
 }
 
 .sub-title{
 text-align:center;
 font-size:20px;
-color:#94a3b8;
-margin-bottom:10px;
+color:#cbd5e1;
+margin-top:0px;
 }
 
 .creator{
 text-align:center;
-font-size:16px;
 color:#38bdf8;
-margin-bottom:30px;
+font-size:16px;
+margin-bottom:25px;
 }
 
-.block-container{
-padding-top:1rem;
-}
-
-.chatbox{
-border-radius:15px;
-padding:10px;
+footer{
+visibility:hidden;
 }
 
 </style>
 """, unsafe_allow_html=True)
 
-# ==========================================
+# =====================================================
 # SESSION STATE
-# ==========================================
+# =====================================================
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# ==========================================
+# =====================================================
 # SIDEBAR
-# ==========================================
+# =====================================================
 
 with st.sidebar:
 
@@ -92,14 +99,10 @@ with st.sidebar:
 
     st.markdown("---")
 
-    st.subheader("Model")
-
-    st.success("Gemini Ready")
-
-    st.markdown("---")
+    st.subheader("Study Mode")
 
     study_mode = st.selectbox(
-        "Study Mode",
+        "Select Mode",
         [
             "General Learning",
             "School",
@@ -113,16 +116,23 @@ with st.sidebar:
 
     st.markdown("---")
 
+    uploaded_file = st.file_uploader(
+        "Upload Study Material",
+        type=["pdf", "txt", "docx"]
+    )
+
+    st.markdown("---")
+
     if st.button("🗑 Clear Chat"):
         st.session_state.messages = []
         st.rerun()
 
     st.markdown("---")
 
-    uploaded_file = st.file_uploader(
-        "Upload Study Material",
-        type=["pdf","txt","docx"]
-    )
+    if model:
+        st.success("🟢 Gemini Connected")
+    else:
+        st.warning("🟡 Add Gemini API Key")
 
     st.markdown("---")
 
@@ -130,7 +140,7 @@ with st.sidebar:
         """
         GYANMASTI.AI
         
-        Educational Assistant
+        Educational AI Assistant
         
         Powered by Gemini
         
@@ -138,9 +148,9 @@ with st.sidebar:
         """
     )
 
-# ==========================================
+# =====================================================
 # HEADER
-# ==========================================
+# =====================================================
 
 st.markdown(
     '<div class="main-title">🎓 GYANMASTI.AI</div>',
@@ -157,18 +167,18 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# ==========================================
+# =====================================================
 # CHAT HISTORY
-# ==========================================
+# =====================================================
 
 for message in st.session_state.messages:
 
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# ==========================================
+# =====================================================
 # CHAT INPUT
-# ==========================================
+# =====================================================
 
 prompt = st.chat_input(
     "Ask GYANMASTI.AI anything..."
@@ -178,8 +188,8 @@ if prompt:
 
     st.session_state.messages.append(
         {
-            "role":"user",
-            "content":prompt
+            "role": "user",
+            "content": prompt
         }
     )
 
@@ -188,57 +198,64 @@ if prompt:
 
     with st.chat_message("assistant"):
 
-        placeholder = st.empty()
+        if model:
 
-        # =====================================
-        # GEMINI RESPONSE PLACEHOLDER
-        # =====================================
+            try:
 
-        """
-        response = model.generate_content(prompt)
-        answer = response.text
-        """
+                response = model.generate_content(
+                    f"""
+                    You are GYANMASTI.AI,
+                    an educational AI assistant.
 
-        answer = f"""
-### 🎓 GYANMASTI.AI
+                    Study Mode:
+                    {study_mode}
 
-You asked:
+                    User Question:
+                    {prompt}
+                    """
+                )
 
-**{prompt}**
+                answer = response.text
 
-This application is successfully running.
+            except Exception as e:
 
-To activate AI:
+                answer = f"❌ Gemini Error: {e}"
 
-1. Create a Gemini API key
-2. Paste it in GEMINI_API_KEY
-3. Uncomment the Gemini code block
+        else:
 
-Current Study Mode: **{study_mode}**
+            answer = """
+🔑 Gemini API Key Required
+
+Open app.py
+
+Find:
+
+GEMINI_API_KEY = ""
+
+Paste your Gemini API key between the quotes.
+
+Restart the application.
 """
 
-        displayed_text = ""
+        st.markdown(answer)
 
-        for char in answer:
-            displayed_text += char
-            placeholder.markdown(displayed_text)
-            time.sleep(0.005)
+    st.session_state.messages.append(
+        {
+            "role": "assistant",
+            "content": answer
+        }
+    )
 
-        st.session_state.messages.append(
-            {
-                "role":"assistant",
-                "content":answer
-            }
-        )
-
-# ==========================================
+# =====================================================
 # FOOTER
-# ==========================================
+# =====================================================
 
 st.markdown("---")
 
+current_year = datetime.now().year
+
 st.markdown(
-"""
+f"""
 <center>
 
 ### 🎓 GYANMASTI.AI
@@ -247,9 +264,10 @@ Learn • Revise • Succeed
 
 Powered by Geetansh Shukla
 
-© 2026
+© {current_year}
 
 </center>
 """,
 unsafe_allow_html=True
 )
+```
