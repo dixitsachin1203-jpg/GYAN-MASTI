@@ -157,8 +157,8 @@ if not st.session_state.messages:
         '<div class="message-bubble">Salutations. I am GyanMasti.ai, engineered by Geetansh Shukla. LET'S GET SOME GYAAN WITH MASTI. Let\'s build something incredible.</div>'
         '</div>'
         '</div>',
-        unsafe_allow_html=True
-    )
+        unsafe_allow_html=True)
+    
 
 # Render history tracking layout
 st.markdown('<div class="chat-container">', unsafe_allow_html=True)
