@@ -200,7 +200,7 @@ with st.sidebar:
 st.markdown("<h1 class='brand-title'>GyanMasti.ai</h1>", unsafe_allow_html=True)
 st.markdown("<p class='brand-subtitle'>⚡ Powered by Geetansh Shukla</p>", unsafe_allow_html=True)
 
-# Secure backend secret key checking ladder
+# Secure backend secret key checking
 api_access_key = st.secrets.get("GROQ_API_KEY", os.environ.get("GROQ_API_KEY", ""))
 
 if "messages" not in st.session_state:
@@ -240,4 +240,3 @@ if client_query := st.chat_input("Inquire anything from GyanMasti.ai..."):
     if not api_access_key:
         st.error("❌ Critical Secret Missing: 'GROQ_API_KEY' is not configured within your Streamlit Secret dashboard.")
     else:
-        try:
