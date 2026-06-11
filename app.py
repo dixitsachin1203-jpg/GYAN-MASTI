@@ -1,27 +1,34 @@
 import streamlit as st
-import google.generativeai as genai
+import time
 
 # ==========================================
-# CONFIG
+# PAGE CONFIG
 # ==========================================
 
 st.set_page_config(
     page_title="GYANMASTI.AI",
     page_icon="🎓",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
 # ==========================================
-# GEMINI API CONFIG
+# GEMINI CONFIG (ADD YOUR API LATER)
 # ==========================================
 
-API_KEY = "AQ.Ab8RN6JHzZL_xKV_RdnMufeK5uGtm3vZ-sbRpv7mgAbH-87E_Q"
+GEMINI_API_KEY = "AQ.Ab8RN6IJyltp_ScFjnb4m7PNw3vnS5XS8FQu6vKCORUz3sUQmA"
 
-if API_KEY != "AQ.Ab8RN6JHzZL_xKV_RdnMufeK5uGtm3vZ-sbRpv7mgAbH-87E_Q":
-    genai.configure(api_key=API_KEY)
-    model = genai.GenerativeModel("gemini-2.5-pro")
-else:
-    model = None
+# Uncomment after creating a new Gemini API Key
+
+"""
+import google.generativeai as genai
+
+genai.configure(api_key=GEMINI_API_KEY)
+
+model = genai.GenerativeModel(
+    "gemini-2.5-flash"
+)
+"""
 
 # ==========================================
 # CUSTOM CSS
@@ -30,33 +37,39 @@ else:
 st.markdown("""
 <style>
 
-.stApp {
-    background: linear-gradient(135deg,#0f172a,#020617);
-    color:white;
+.stApp{
+background: linear-gradient(135deg,#020617,#0f172a,#111827);
 }
 
 .main-title{
-    text-align:center;
-    font-size:60px;
-    font-weight:bold;
-    color:white;
+text-align:center;
+font-size:60px;
+font-weight:800;
+color:white;
+margin-top:10px;
 }
 
 .sub-title{
-    text-align:center;
-    font-size:20px;
-    color:#94a3b8;
+text-align:center;
+font-size:20px;
+color:#94a3b8;
+margin-bottom:10px;
 }
 
-.powered{
-    text-align:center;
-    color:#38bdf8;
-    font-size:15px;
-    margin-bottom:25px;
+.creator{
+text-align:center;
+font-size:16px;
+color:#38bdf8;
+margin-bottom:30px;
 }
 
-footer {
-    visibility:hidden;
+.block-container{
+padding-top:1rem;
+}
+
+.chatbox{
+border-radius:15px;
+padding:10px;
 }
 
 </style>
@@ -75,13 +88,28 @@ if "messages" not in st.session_state:
 
 with st.sidebar:
 
-    st.title("⚙️ GYANMASTI Control")
+    st.title("🎓 GYANMASTI.AI")
 
     st.markdown("---")
 
     st.subheader("Model")
 
-    st.success("Gemini 2.5 Pro")
+    st.success("Gemini Ready")
+
+    st.markdown("---")
+
+    study_mode = st.selectbox(
+        "Study Mode",
+        [
+            "General Learning",
+            "School",
+            "CBSE",
+            "CA Foundation",
+            "CA Intermediate",
+            "CA Final",
+            "College"
+        ]
+    )
 
     st.markdown("---")
 
@@ -91,13 +119,24 @@ with st.sidebar:
 
     st.markdown("---")
 
-    st.info("""
-GYANMASTI.AI
+    uploaded_file = st.file_uploader(
+        "Upload Study Material",
+        type=["pdf","txt","docx"]
+    )
 
-Educational AI Assistant
+    st.markdown("---")
 
-Powered by Gemini
-""")
+    st.info(
+        """
+        GYANMASTI.AI
+        
+        Educational Assistant
+        
+        Powered by Gemini
+        
+        Created by Geetansh Shukla
+        """
+    )
 
 # ==========================================
 # HEADER
@@ -114,7 +153,7 @@ st.markdown(
 )
 
 st.markdown(
-    '<div class="powered">⚡ Powered by Geetansh Shukla</div>',
+    '<div class="creator">⚡ Powered by Geetansh Shukla</div>',
     unsafe_allow_html=True
 )
 
@@ -123,6 +162,7 @@ st.markdown(
 # ==========================================
 
 for message in st.session_state.messages:
+
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
@@ -130,14 +170,16 @@ for message in st.session_state.messages:
 # CHAT INPUT
 # ==========================================
 
-prompt = st.chat_input("Ask anything...")
+prompt = st.chat_input(
+    "Ask GYANMASTI.AI anything..."
+)
 
 if prompt:
 
     st.session_state.messages.append(
         {
-            "role": "user",
-            "content": prompt
+            "role":"user",
+            "content":prompt
         }
     )
 
@@ -146,42 +188,48 @@ if prompt:
 
     with st.chat_message("assistant"):
 
-        message_placeholder = st.empty()
+        placeholder = st.empty()
 
-        try:
+        # =====================================
+        # GEMINI RESPONSE PLACEHOLDER
+        # =====================================
 
-            if model:
+        """
+        response = model.generate_content(prompt)
+        answer = response.text
+        """
 
-                response = model.generate_content(prompt)
+        answer = f"""
+### 🎓 GYANMASTI.AI
 
-                answer = response.text
+You asked:
 
-            else:
+**{prompt}**
 
-                answer = """
-🔑 Gemini API Key Not Added Yet
+This application is successfully running.
 
-Open app.py and replace:
+To activate AI:
 
-YOUR_GEMINI_API_KEY_HERE
+1. Create a Gemini API key
+2. Paste it in GEMINI_API_KEY
+3. Uncomment the Gemini code block
 
-with your actual Gemini API key.
+Current Study Mode: **{study_mode}**
 """
 
-            message_placeholder.markdown(answer)
+        displayed_text = ""
 
-            st.session_state.messages.append(
-                {
-                    "role": "assistant",
-                    "content": answer
-                }
-            )
+        for char in answer:
+            displayed_text += char
+            placeholder.markdown(displayed_text)
+            time.sleep(0.005)
 
-        except Exception as e:
-
-            error_message = f"❌ Error: {str(e)}"
-
-            message_placeholder.error(error_message)
+        st.session_state.messages.append(
+            {
+                "role":"assistant",
+                "content":answer
+            }
+        )
 
 # ==========================================
 # FOOTER
@@ -195,9 +243,11 @@ st.markdown(
 
 ### 🎓 GYANMASTI.AI
 
+Learn • Revise • Succeed
+
 Powered by Geetansh Shukla
 
-© 2026 All Rights Reserved
+© 2026
 
 </center>
 """,
