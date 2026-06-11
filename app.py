@@ -1,6 +1,6 @@
 import streamlit as st
 import os
-from openai import OpenAI
+from groq import Groq
 
 # 1. APPLICATION VIEWPORT AND PAGE LAYOUT CONFIGURATION
 st.set_page_config(
@@ -69,13 +69,11 @@ custom_theme_css = """
     .user .message-bubble {
         background: linear-gradient(135deg, #ff007f 0%, #7928ca 100%);
         color: #ffffff !important;
-        border-bottom-right-radius: 2px;
         border: 1px solid rgba(255, 255, 255, 0.15);
     }
     .assistant .message-bubble {
         background: rgba(22, 17, 45, 0.65);
         color: #f1f5f9 !important;
-        border-bottom-left-radius: 2px;
         border: 1px solid rgba(0, 242, 254, 0.25);
         backdrop-filter: blur(10px);
     }
@@ -113,7 +111,7 @@ with st.sidebar:
         value=saved_key,
         type="password",
         placeholder="gsk_...",
-        help="Acquire a free generation token value instantly by entering ://groq.com"
+        help="Leave blank to use saved Streamlit Secrets key configuration."
     )
     
     st.markdown("---")
@@ -176,7 +174,7 @@ for current_msg in st.session_state.messages:
     )
 st.markdown('</div>', unsafe_allow_html=True)
 
-# 4. CHAT PROCESSING WORKFLOW AND TOKENS STREAMING
+# 4. CHAT PROCESSING WORKFLOW AND TOKENS STREAMING via Native Groq client
 if client_query := st.chat_input("Inquire anything from GyanMasti.ai..."):
     
     st.markdown(
@@ -191,11 +189,8 @@ if client_query := st.chat_input("Inquire anything from GyanMasti.ai..."):
         st.error("⚠️ Authentication Missing: Please provide a valid Groq Cloud API Key inside the Matrix Controls sidebar panel.")
     else:
         try:
-            # Clean standard OpenAI architecture for Groq
-            api_client = OpenAI(
-                api_key=user_api_key,
-                base_url="https://groq.com"
-            )
+            # Using Native Groq SDK to avoid compatibility and endpoint mapping issues
+            api_client = Groq(api_key=user_api_key)
             
             # Form clean history without any UI wrappers
             runtime_payload = [{"role": "system", "content": system_instruction_prompt}]
