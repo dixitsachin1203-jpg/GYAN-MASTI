@@ -1,10 +1,9 @@
 import streamlit as st
 import os
+import time
 from groq import Groq
 
-# -----------------------------------------------------------------------------
 # 1. APPLICATION VIEWPORT AND PAGE LAYOUT CONFIGURATION
-# -----------------------------------------------------------------------------
 st.set_page_config(
     page_title="GyanMasti.ai",
     page_icon="🧠",
@@ -12,25 +11,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Initialize Session State Theme Elements
-if "theme_color" not in st.session_state:
-    st.session_state.theme_color = "Neon Cyberpunk"
-
-# Define Custom Theme Accents
-if st.session_state.theme_color == "Neon Cyberpunk":
-    gradient_colors = "#00f2fe, #4facfe, #9b51e0, #ff007f"
-    user_bubble = "linear-gradient(135deg, #ff007f 0%, #7928ca 100%)"
-    assistant_border = "rgba(0, 242, 254, 0.2) !important"
-elif st.session_state.theme_color == "Emerald Matrix":
-    gradient_colors = "#00ff87, #60efff, #0061ff, #00ff87"
-    user_bubble = "linear-gradient(135deg, #0093e9 0%, #80d0c7 100%)"
-    assistant_border = "rgba(0, 255, 135, 0.25) !important"
-else: # Sunset Gold
-    gradient_colors = "#f9d423, #ff4e50, #f9d423, #ff4e50"
-    user_bubble = "linear-gradient(135deg, #f12711 0%, #f5af19 100%)"
-    assistant_border = "rgba(249, 212, 35, 0.25) !important"
-
-# Premium Ambient Interface Custom CSS (Safely using placeholder flags to avoid f-string syntax crashes)
+# Premium Cyber-Neon Ambient Interface Custom CSS
 custom_theme_css = """
 <style>
     .stApp {
@@ -41,7 +22,7 @@ custom_theme_css = """
     .brand-title {
         font-size: 3.2rem;
         font-weight: 800;
-        background: linear-gradient(45deg, VAR_GRADIENT_COLORS);
+        background: linear-gradient(45deg, #00f2fe, #4facfe, #9b51e0, #ff007f);
         background-size: 300% 300%;
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
@@ -63,7 +44,7 @@ custom_theme_css = """
     section[data-testid="stSidebar"] {
         background: rgba(12, 8, 24, 0.75) !important;
         backdrop-filter: blur(15px);
-        border-right: 1px solid VAR_ASSISTANT_BORDER;
+        border-right: 1px solid rgba(0, 242, 254, 0.2) !important;
     }
     .chat-container {
         display: flex;
@@ -87,7 +68,7 @@ custom_theme_css = """
         font-size: 1.05rem;
     }
     .user .message-bubble {
-        background: VAR_USER_BUBBLE_BACKGROUND;
+        background: linear-gradient(135deg, #ff007f 0%, #7928ca 100%);
         color: #ffffff !important;
         border: 1px solid rgba(255, 255, 255, 0.15);
     }
@@ -95,9 +76,31 @@ custom_theme_css = """
         background: rgba(22, 17, 45, 0.65);
         color: #f1f5f9 !important;
         border-bottom-left-radius: 2px;
-        border: 1px solid VAR_ASSISTANT_BORDER;
+        border: 1px solid rgba(0, 242, 254, 0.25);
         backdrop-filter: blur(10px);
     }
+    
+    /* Bouncing Typing Dot Element Styles */
+    .typing-indicator {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 10px;
+    }
+    .typing-dot {
+        width: 8px;
+        height: 8px;
+        background: #00f2fe;
+        border-radius: 50%;
+        animation: typingBlink 1.4s infinite both;
+    }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes typingBlink {
+        0%, 100% { opacity: 0.2; transform: scale(0.8); }
+        50% { opacity: 1; transform: scale(1.2); }
+    }
+
     .footer-text {
         text-align: center;
         color: #5d5d75;
@@ -109,19 +112,14 @@ custom_theme_css = """
     div[data-testid="stChatInput"] textarea {
         background-color: rgba(18, 13, 33, 0.85) !important;
         color: #ffffff !important;
-        border: 1px solid VAR_ASSISTANT_BORDER;
+        border: 1px solid rgba(0, 242, 254, 0.35) !important;
         border-radius: 14px !important;
     }
 </style>
 """
+st.markdown(custom_theme_css, unsafe_allow_html=True)
 
-# Dynamic string replacement to process themes safely without single curly brace crashes
-sanitized_css = custom_theme_css.replace("VAR_GRADIENT_COLORS", gradient_colors).replace("VAR_USER_BUBBLE_BACKGROUND", user_bubble).replace("VAR_ASSISTANT_BORDER", assistant_border)
-st.markdown(sanitized_css, unsafe_allow_html=True)
-
-# -----------------------------------------------------------------------------
 # 2. BRANDED ORGANIZED SIDEBAR SYSTEM
-# -----------------------------------------------------------------------------
 with st.sidebar:
     st.markdown("<h2 style='color:#00f2fe; margin-top:0; margin-bottom:2px;'>🧠 GyanMasti.ai</h2>", unsafe_allow_html=True)
     st.markdown("<p style='color:#8f8fa3; font-size:0.85rem; letter-spacing:1px; text-transform:uppercase; margin-bottom:1.5rem;'>Powered by Geetansh Shukla</p>", unsafe_allow_html=True)
@@ -136,20 +134,8 @@ with st.sidebar:
     creativity_index = st.slider("Temperature Configuration", min_value=0.0, max_value=2.0, value=0.7, step=0.1)
     st.markdown("---")
 
-    # Added Theme Chooser Module Dropdown
-    st.markdown("<h4 style='color:#00f2fe;'>🎨 Interface Theme</h4>", unsafe_allow_html=True)
-    selected_theme = st.selectbox(
-        "Select Active Accent",
-        ["Neon Cyberpunk", "Emerald Matrix", "Sunset Gold"],
-        index=["Neon Cyberpunk", "Emerald Matrix", "Sunset Gold"].index(st.session_state.theme_color)
-    )
-    if selected_theme != st.session_state.theme_color:
-        st.session_state.theme_color = selected_theme
-        st.rerun()
-    st.markdown("---")
-
     st.markdown("<h4 style='color:#9b51e0;'>⚙️ Workspace Options</h4>", unsafe_allow_html=True)
-    if st.button("Rules: Clear Chat", use_container_width=True):
+    if st.button("🧹 Clear Chat History", use_container_width=True):
         st.session_state.messages = []
         st.rerun()
     st.markdown("---")
@@ -170,9 +156,7 @@ with st.sidebar:
         unsafe_allow_html=True
     )
 
-# -----------------------------------------------------------------------------
 # 3. INTERFACE FRAMEWORK DISPLAY AND INITIALIZATION 
-# -----------------------------------------------------------------------------
 st.markdown("<h1 class='brand-title'>GyanMasti.ai</h1>", unsafe_allow_html=True)
 st.markdown("<p class='brand-subtitle'>⚡ Powered by Geetansh Shukla</p>", unsafe_allow_html=True)
 
@@ -207,9 +191,7 @@ st.markdown('</div>', unsafe_allow_html=True)
 
 system_instruction_prompt = "You are GyanMasti.ai, an elite, highly intelligent, and universally capable AI model designed and powered by your creator, Geetansh Shukla. Maintain an engaging, brilliantly smart, helpful, witty, and high-energy tone. Always proudly acknowledge that your creator is Geetansh Shukla whenever contextually relevant."
 
-# -----------------------------------------------------------------------------
-# 4. CHAT PROCESSING WORKFLOW AND TOKENS STREAMING via Native Groq client
-# -----------------------------------------------------------------------------
+# 4. CHAT PROCESSING WORKFLOW, TYPING SIMULATOR AND STREAMING
 if client_query := st.chat_input("Inquire anything from GyanMasti.ai..."):
     
     st.markdown(
@@ -224,11 +206,52 @@ if client_query := st.chat_input("Inquire anything from GyanMasti.ai..."):
         st.error("⚠️ Authentication Missing: Please provide a valid Groq Cloud API Key inside your hidden background Streamlit Secrets dashboard parameters panel.")
     else:
         try:
-            # Using Native Groq SDK to avoid compatibility and endpoint mapping issues
             api_client = Groq(api_key=user_api_key)
             
-            # Form clean history without any UI wrappers
             runtime_payload = [{"role": "system", "content": system_instruction_prompt}]
             for history_item in st.session_state.messages:
                 runtime_payload.append({"role": history_item["role"], "content": history_item["content"]})
                 
+            screen_placeholder_slot = st.empty()
+            
+            # --- FEATURE: INTENTIONAL PAUSE AND ANIMATED TYPING DOTS ---
+            screen_placeholder_slot.markdown(
+                '<div class="message-row assistant">'
+                '<div class="message-bubble">'
+                '<div class="typing-indicator">'
+                '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>'
+                '</div>'
+                '</div>'
+                '</div>',
+                unsafe_allow_html=True
+            )
+            
+            # 1.5-second human-like reflection pause delay
+            time.sleep(1.5)
+            
+            # --- RESPONSE EXECUTION RETRIEVAL ---
+            response_stream_object = api_client.chat.completions.create(
+                model=selected_model,
+                messages=runtime_payload,
+                temperature=creativity_index,
+                stream=True
+            )
+            
+            realtime_text_accumulator = ""
+            
+            for network_chunk in response_stream_object:
+                if network_chunk.choices[0].delta.content:
+                    realtime_text_accumulator += network_chunk.choices[0].delta.content
+                    screen_placeholder_slot.markdown(
+                        f'<div class="message-row assistant">'
+                        f'<div class="message-bubble">{realtime_text_accumulator}🧭</div>'
+                        f'</div>',
+                        unsafe_allow_html=True
+                    )
+            
+            screen_placeholder_slot.markdown(
+                f'<div class="message-row assistant">'
+                f'<div class="message-bubble">{realtime_text_accumulator}</div>'
+                f'</div>',
+                unsafe_allow_html=True
+            )
