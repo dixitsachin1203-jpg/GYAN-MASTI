@@ -2,92 +2,204 @@ import streamlit as st
 import google.generativeai as genai
 
 # ==========================================
-# 1. INSERT YOUR GEMINI API KEY HERE
+# CONFIG
 # ==========================================
-GEMINI_API_KEY = AQ.Ab8RN6JHzZL_xKV_RdnMufeK5uGtm3vZ-sbRpv7mgAbH-87E_Q
 
-# --- PAGE SETUP & UI CONFIGURATION ---
 st.set_page_config(
-    page_title="Gemini AI Chatbot", 
-    page_icon="🤖", 
-    layout="centered"
+    page_title="GYANMASTI.AI",
+    page_icon="🎓",
+    layout="wide"
 )
 
-st.title("🤖 Gemini AI Chatbot")
-st.caption("A dedicated private chat workspace powered by Google Gemini.")
+# ==========================================
+# GEMINI API CONFIG
+# ==========================================
 
-# --- SIDEBAR TOOLS ---
-with st.sidebar:
-    st.header("Workspace Tools")
-    if st.button("Clear Conversation", use_container_width=True):
-        st.session_state.messages = []
-        st.rerun()
+API_KEY = "AQ.Ab8RN6JHzZL_xKV_RdnMufeK5uGtm3vZ-sbRpv7mgAbH-87E_Q"
 
-# --- INITIALIZE API & MODEL ---
-# Validate that the placeholder text has been swapped out
-if GEMINI_API_KEY == "YOUR_GEMINI_API_KEY_HERE" or not GEMINI_API_KEY:
-    st.error("⚠️ Setup Missing: Please replace 'YOUR_GEMINI_API_KEY_HERE' in the python script with your real Gemini API key.")
-    st.stop()
+if API_KEY != "AQ.Ab8RN6JHzZL_xKV_RdnMufeK5uGtm3vZ-sbRpv7mgAbH-87E_Q":
+    genai.configure(api_key=API_KEY)
+    model = genai.GenerativeModel("gemini-2.5-pro")
+else:
+    model = None
 
-# Configure the official SDK directly with your embedded key
-genai.configure(api_key=GEMINI_API_KEY)
+# ==========================================
+# CUSTOM CSS
+# ==========================================
 
-try:
-    model = genai.GenerativeModel(
-        model_name="gemini-2.5-flash",
-        system_instruction="You are a helpful, brilliant, and polite AI assistant modeled after ChatGPT and Gemini. Give concise, well-formatted answers."
-    )
-except Exception as e:
-    st.error(f"Failed to initialize the Gemini model: {str(e)}")
-    st.stop()
+st.markdown("""
+<style>
 
-# --- SESSION STATE CHAT HISTORY ---
+.stApp {
+    background: linear-gradient(135deg,#0f172a,#020617);
+    color:white;
+}
+
+.main-title{
+    text-align:center;
+    font-size:60px;
+    font-weight:bold;
+    color:white;
+}
+
+.sub-title{
+    text-align:center;
+    font-size:20px;
+    color:#94a3b8;
+}
+
+.powered{
+    text-align:center;
+    color:#38bdf8;
+    font-size:15px;
+    margin-bottom:25px;
+}
+
+footer {
+    visibility:hidden;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+# ==========================================
+# SESSION STATE
+# ==========================================
+
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Render previous chat blocks on screen refreshment
+# ==========================================
+# SIDEBAR
+# ==========================================
+
+with st.sidebar:
+
+    st.title("⚙️ GYANMASTI Control")
+
+    st.markdown("---")
+
+    st.subheader("Model")
+
+    st.success("Gemini 2.5 Pro")
+
+    st.markdown("---")
+
+    if st.button("🗑 Clear Chat"):
+        st.session_state.messages = []
+        st.rerun()
+
+    st.markdown("---")
+
+    st.info("""
+GYANMASTI.AI
+
+Educational AI Assistant
+
+Powered by Gemini
+""")
+
+# ==========================================
+# HEADER
+# ==========================================
+
+st.markdown(
+    '<div class="main-title">🎓 GYANMASTI.AI</div>',
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    '<div class="sub-title">Learn Smarter • Study Faster • AI Powered Education</div>',
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    '<div class="powered">⚡ Powered by Geetansh Shukla</div>',
+    unsafe_allow_html=True
+)
+
+# ==========================================
+# CHAT HISTORY
+# ==========================================
+
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# --- EXECUTE ACTIVE CHAT LOOP ---
-if prompt := st.chat_input("Ask me anything..."):
-    
-    # 1. Print user message on the interface screen
+# ==========================================
+# CHAT INPUT
+# ==========================================
+
+prompt = st.chat_input("Ask anything...")
+
+if prompt:
+
+    st.session_state.messages.append(
+        {
+            "role": "user",
+            "content": prompt
+        }
+    )
+
     with st.chat_message("user"):
         st.markdown(prompt)
-    
-    # 2. Append to continuous background memory state
-    st.session_state.messages.append({"role": "user", "content": prompt})
 
-    # 3. Format total active dialog stream for Gemini context ingestion 
-    api_history = []
-    for msg in st.session_state.messages:
-        api_role = "user" if msg["role"] == "user" else "model"
-        api_history.append({
-            "role": api_role, 
-            "parts": [msg["content"]]
-        })
-
-    # 4. Stream conversational response chunk-by-chunk
     with st.chat_message("assistant"):
-        response_placeholder = st.empty()
-        full_response = ""
-        
+
+        message_placeholder = st.empty()
+
         try:
-            response = model.generate_content(api_history, stream=True)
-            
-            for chunk in response:
-                if chunk.text:
-                    full_response += chunk.text
-                    # Display a blinking loading cursor block
-                    response_placeholder.markdown(full_response + "▌")
-            
-            # Print final clean message block 
-            response_placeholder.markdown(full_response)
-            
-            # 5. Lock bot reply string into memory state
-            st.session_state.messages.append({"role": "assistant", "content": full_response})
-            
+
+            if model:
+
+                response = model.generate_content(prompt)
+
+                answer = response.text
+
+            else:
+
+                answer = """
+🔑 Gemini API Key Not Added Yet
+
+Open app.py and replace:
+
+YOUR_GEMINI_API_KEY_HERE
+
+with your actual Gemini API key.
+"""
+
+            message_placeholder.markdown(answer)
+
+            st.session_state.messages.append(
+                {
+                    "role": "assistant",
+                    "content": answer
+                }
+            )
+
         except Exception as e:
-            st.error(f"API Connection Error: {str(e)}")
+
+            error_message = f"❌ Error: {str(e)}"
+
+            message_placeholder.error(error_message)
+
+# ==========================================
+# FOOTER
+# ==========================================
+
+st.markdown("---")
+
+st.markdown(
+"""
+<center>
+
+### 🎓 GYANMASTI.AI
+
+Powered by Geetansh Shukla
+
+© 2026 All Rights Reserved
+
+</center>
+""",
+unsafe_allow_html=True
+)
