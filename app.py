@@ -2,7 +2,9 @@ import streamlit as st
 import os
 from groq import Groq
 
+# -----------------------------------------------------------------------------
 # 1. APPLICATION VIEWPORT AND PAGE LAYOUT CONFIGURATION
+# -----------------------------------------------------------------------------
 st.set_page_config(
     page_title="GyanMasti.ai",
     page_icon="🧠",
@@ -74,6 +76,7 @@ custom_theme_css = """
     .assistant .message-bubble {
         background: rgba(22, 17, 45, 0.65);
         color: #f1f5f9 !important;
+        border-bottom-left-radius: 2px;
         border: 1px solid rgba(0, 242, 254, 0.25);
         backdrop-filter: blur(10px);
     }
@@ -95,58 +98,53 @@ custom_theme_css = """
 """
 st.markdown(custom_theme_css, unsafe_allow_html=True)
 
-# 2. CONTROL COMPONENT SIDEBAR & INITIAL VALUE LOADERS
+# -----------------------------------------------------------------------------
+# 2. BRANDED ORGANIZED SIDEBAR SYSTEM (KEY CONTROLS REMOVED)
+# -----------------------------------------------------------------------------
 with st.sidebar:
-    st.markdown("<h2 style='color:#00f2fe; margin-top:0;'>⚙️ Matrix Core Controls</h2>", unsafe_allow_html=True)
-    st.write("Engine system metrics operating on ultra-low latency **Groq Infrastructure**.")
-    
-    saved_key = ""
-    if "GROQ_API_KEY" in st.secrets:
-        saved_key = st.secrets["GROQ_API_KEY"]
-    elif os.environ.get("GROQ_API_KEY"):
-        saved_key = os.environ.get("GROQ_API_KEY")
-        
-    user_api_key = st.text_input(
-        "Groq Cloud API Key",
-        value=saved_key,
-        type="password",
-        placeholder="gsk_...",
-        help="Leave blank to use saved Streamlit Secrets key configuration."
-    )
-    
+    st.markdown("<h2 style='color:#00f2fe; margin-top:0; margin-bottom:2px;'>🧠 GyanMasti.ai</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='color:#8f8fa3; font-size:0.85rem; letter-spacing:1px; text-transform:uppercase; margin-bottom:1.5rem;'>Powered by Geetansh Shukla</p>", unsafe_allow_html=True)
     st.markdown("---")
-    st.markdown("<h3 style='color:#ff007f;'>🤖 Parameter Controls</h3>", unsafe_allow_html=True)
     
+    st.markdown("<h4 style='color:#ff007f;'>🤖 Brain Settings</h4>", unsafe_allow_html=True)
     selected_model = st.selectbox(
         "AI Brain Engine",
         ["llama-3.3-70b-versatile", "llama3-8b-8192", "gemma2-9b-it"],
         index=0
     )
-    
     creativity_index = st.slider("Temperature Configuration", min_value=0.0, max_value=2.0, value=0.7, step=0.1)
-    
-    if st.button("Rules: Flush Memory Banks", use_container_width=True):
+    st.markdown("---")
+
+    st.markdown("<h4 style='color:#9b51e0;'>⚙️ Workspace Options</h4>", unsafe_allow_html=True)
+    if st.button("Rules: Clear Chat", use_container_width=True):
         st.session_state.messages = []
         st.rerun()
-    
-    system_instruction_prompt = (
-        "You are GyanMasti.ai, an elite, highly intelligent, and universally capable AI model. "
-        "You are proudly designed, developed, and powered by your creator, Geetansh Shukla. "
-        "Maintain an engaging, brilliantly smart, helpful, witty, and high-energy tone. "
-        "Always proudly acknowledge that your creator is Geetansh Shukla whenever contextually relevant."
-    )
-    
     st.markdown("---")
+
+    with st.expander("ℹ️ About Us"):
+        st.write("GyanMasti.ai is a premier ultra-modern artificial intelligence interface wrapper module designed to bring advanced open frontier model inference parameters together instantly.")
+        
+    with st.expander("📞 Contact Us"):
+        st.write("Have ideas or feedback regarding project execution pipelines?")
+        st.markdown("📩 **Developer Email:** contact@geetanshshukla.com")
+
+    with st.expander("❤️ Donate Us"):
+        st.write("Support the computational resource infrastructure framework hosting costs!")
+        st.info("☕ Buy Geetansh Shukla a Coffee • UPI: geetansh@upi")
+
     st.markdown(
-        "<div style='color: #6a6a85; font-size:0.8rem; text-align:center;'>"
-        "GyanMasti.ai Core • Release v3.5<br>© 2026 Geetansh Shukla"
-        "</div>", 
+        "<div style='color: #6a6a85; font-size:0.8rem; text-align:center; margin-top:2rem;'>GyanMasti.ai Core • Release v4.0<br>© 2026 Geetansh Shukla</div>", 
         unsafe_allow_html=True
     )
 
+# -----------------------------------------------------------------------------
 # 3. INTERFACE FRAMEWORK DISPLAY AND INITIALIZATION 
+# -----------------------------------------------------------------------------
 st.markdown("<h1 class='brand-title'>GyanMasti.ai</h1>", unsafe_allow_html=True)
 st.markdown("<p class='brand-subtitle'>⚡ Powered by Geetansh Shukla</p>", unsafe_allow_html=True)
+
+# Pull environment secret key from your background Streamlit settings panel safely
+user_api_key = st.secrets.get("GROQ_API_KEY", os.environ.get("GROQ_API_KEY", ""))
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -174,7 +172,11 @@ for current_msg in st.session_state.messages:
     )
 st.markdown('</div>', unsafe_allow_html=True)
 
+system_instruction_prompt = "You are GyanMasti.ai, an elite, highly intelligent, and universally capable AI model designed and powered by your creator, Geetansh Shukla. Maintain an engaging, brilliantly smart, helpful, witty, and high-energy tone. Always proudly acknowledge that your creator is Geetansh Shukla whenever contextually relevant."
+
+# -----------------------------------------------------------------------------
 # 4. CHAT PROCESSING WORKFLOW AND TOKENS STREAMING via Native Groq client
+# -----------------------------------------------------------------------------
 if client_query := st.chat_input("Inquire anything from GyanMasti.ai..."):
     
     st.markdown(
@@ -186,7 +188,7 @@ if client_query := st.chat_input("Inquire anything from GyanMasti.ai..."):
     st.session_state.messages.append({"role": "user", "content": client_query})
     
     if not user_api_key:
-        st.error("⚠️ Authentication Missing: Please provide a valid Groq Cloud API Key inside the Matrix Controls sidebar panel.")
+        st.error("⚠️ Authentication Missing: Please provide a valid Groq Cloud API Key inside your hidden background Streamlit Secrets dashboard parameters panel.")
     else:
         try:
             # Using Native Groq SDK to avoid compatibility and endpoint mapping issues
@@ -230,4 +232,3 @@ if client_query := st.chat_input("Inquire anything from GyanMasti.ai..."):
         except Exception as execution_fault:
             st.error(f"❌ Groq Neural Core Exception: {str(execution_fault)}")
 
-st.markdown("<div class='footer-text'>GyanMasti.ai Interface Framework • Lovingly Crafted by Geetansh Shukla</div>", unsafe_allow_html=True)
