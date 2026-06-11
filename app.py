@@ -154,7 +154,7 @@ if not st.session_state.messages:
     st.markdown(
         '<div class="chat-container">'
         '<div class="message-row assistant">'
-        '<div class="message-bubble">Salutations. I am GyanMasti.ai, engineered by Geetansh Shukla. Lets Get Some Gyan with Masti. Let\'s build something incredible.</div>'
+        '<div class="message-bubble">Salutations. I am GyanMasti.ai, engineered by Geetansh Shukla. Lets Get Some Gyan with Masti. .</div>'
         '</div>'
         '</div>',
         unsafe_allow_html=True
