@@ -31,130 +31,133 @@ else: # Sunset Gold
     user_bubble = "linear-gradient(135deg, #f12711 0%, #f5af19 100%)"
     assistant_border = "rgba(249, 212, 35, 0.25)"
 
-# Premium Ambient Interface Custom CSS Override System (All CSS braces safely escaped as double curly brackets)
-custom_theme_css = f"""
+# Premium Ambient Interface Custom CSS System (braces completely safely isolated)
+custom_theme_css = """
 <style>
     /* Absolute Base Background Reset */
-    .stApp {{
+    .stApp {
         background: linear-gradient(135deg, #090714 0%, #0e0a1f 50%, #030205 100%) !important;
         color: #e2e8f0 !important;
         font-family: 'Inter', system-ui, sans-serif;
-    }}
+    }
     
     /* Interactive Moving Header Title */
-    .brand-title {{
+    .brand-title {
         font-size: 3.5rem;
         font-weight: 800;
-        background: linear-gradient(45deg, {gradient_colors});
+        background: linear-gradient(45deg, VAR_GRADIENT_COLORS);
         background-size: 300% 300%;
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         animation: NeonFlow 8s ease infinite;
         margin-bottom: 2px;
-    }}
-    .brand-subtitle {{
+    }
+    .brand-subtitle {
         font-size: 1.05rem;
         color: #8f8fa3;
         letter-spacing: 3px;
         text-transform: uppercase;
         margin-bottom: 2rem;
-    }}
-    @keyframes NeonFlow {{
-        0% {{ background-position: 0% 50%; }}
-        50% {{ background-position: 100% 50%; }}
-        100% {{ background-position: 0% 50%; }}
-    }}
+    }
+    @keyframes NeonFlow {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
 
     /* Glassmorphic Cyber Workspace Sidebar */
-    section[data-testid="stSidebar"] {{
+    section[data-testid="stSidebar"] {
         background: rgba(9, 6, 18, 0.8) !important;
         backdrop-filter: blur(20px);
-        border-right: 1px solid {assistant_border} !important;
-    }}
+        border-right: 1px solid VAR_ASSISTANT_BORDER !important;
+    }
 
     /* Custom Layout Architecture For Conversational Rows */
-    .chat-container {{
+    .chat-container {
         display: flex;
         flex-direction: column;
         gap: 1.5rem;
         margin-bottom: 6rem;
-    }}
-    .message-row {{
+    }
+    .message-row {
         display: flex;
         width: 100%;
         margin-bottom: 0.6rem;
-    }}
-    .message-row.user {{ justify-content: flex-end; }}
-    .message-row.assistant {{ justify-content: flex-start; }}
+    }
+    .message-row.user { justify-content: flex-end; }
+    .message-row.assistant { justify-content: flex-start; }
 
     /* Ergonomic Speech Bubbles */
-    .message-bubble {{
+    .message-bubble {
         padding: 1.2rem 1.6rem;
         border-radius: 22px;
         max-width: 78%;
         line-height: 1.6;
         box-shadow: 0 6px 20px rgba(0,0,0,0.3);
         font-size: 1.05rem;
-    }}
+    }
     
     /* Dynamic User Bubble Theme Accent */
-    .user .message-bubble {{
-        background: {user_bubble};
+    .user .message-bubble {
+        background: VAR_USER_BUBBLE;
         color: #ffffff !important;
         border-bottom-right-radius: 2px;
         border: 1px solid rgba(255, 255, 255, 0.15);
-    }}
+    }
 
     /* Assistant Theme Accent Bubble */
-    .assistant .message-bubble {{
+    .assistant .message-bubble {
         background: rgba(18, 14, 38, 0.7);
         color: #f1f5f9 !important;
         border-bottom-left-radius: 2px;
-        border: 1px solid {assistant_border};
+        border: 1px solid VAR_ASSISTANT_BORDER;
         backdrop-filter: blur(10px);
-    }}
+    }
 
     /* Typing ... Animation Graphic Styling */
-    .typing-indicator {{
+    .typing-indicator {
         display: flex;
         align-items: center;
         gap: 6px;
         padding: 5px 10px;
-    }}
-    .typing-dot {{
+    }
+    .typing-dot {
         width: 8px;
         height: 8px;
         background: #00f2fe;
         border-radius: 50%;
         animation: typingBlink 1.4s infinite both;
-    }}
-    .typing-dot:nth-child(2) {{ animation-delay: 0.2s; }}
-    .typing-dot:nth-child(3) {{ animation-delay: 0.4s; }}
-    @keyframes typingBlink {{
-        0%, 100% {{ opacity: 0.2; transform: scale(0.8); }}
-        50% {{ opacity: 1; transform: scale(1.2); }}
-    }}
+    }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes typingBlink {
+        0%, 100% { opacity: 0.2; transform: scale(0.8); }
+        50% { opacity: 1; transform: scale(1.2); }
+    }
     
     /* Global Footer Accent Styling */
-    .footer-text {{
+    .footer-text {
         text-align: center;
         color: #5d5d75;
         font-size: 0.85rem;
         margin-top: 4rem;
         border-top: 1px solid rgba(255, 255, 255, 0.06);
         padding-top: 12rem;
-    }}
+    }
     
     /* Input Field Overrides */
-    div[data-testid="stChatInput"] textarea {{
+    div[data-testid="stChatInput"] textarea {
         background-color: rgba(14, 10, 28, 0.9) !important;
         color: #ffffff !important;
-        border: 1px solid {assistant_border} !important;
+        border: 1px solid VAR_ASSISTANT_BORDER !important;
         border-radius: 14px !important;
     }
 </style>
 """
-st.markdown(custom_theme_css, unsafe_allow_html=True)
+
+# Safe string replacement to entirely avoid dynamic f-string curly brace conflicts
+sanitized_css = custom_theme_css.replace("VAR_GRADIENT_COLORS", gradient_colors).replace("VAR_USER_BUBBLE", user_bubble).replace("VAR_ASSISTANT_BORDER", assistant_border)
+st.markdown(sanitized_css, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
 # 2. BRANDED ORGANIZED SIDEBAR SYSTEM
@@ -165,7 +168,7 @@ with st.sidebar:
     st.markdown("<p style='color:#8f8fa3; font-size:0.85rem; letter-spacing:1px; text-transform:uppercase; margin-bottom:1.5rem;'>Powered by Geetansh Shukla</p>", unsafe_allow_html=True)
     st.markdown("---")
 
-    # 🤖 Parameter Configuration Options
+    # Parameter Configuration Options
     st.markdown("<h4 style='color:#ff007f;'>🤖 Brain Settings</h4>", unsafe_allow_html=True)
     selected_model = st.selectbox(
         "AI Brain Engine",
@@ -175,7 +178,7 @@ with st.sidebar:
     creativity_index = st.slider("Temperature (Creativity)", min_value=0.0, max_value=2.0, value=0.7, step=0.1)
     st.markdown("---")
 
-    # 🎨 Color Theme Interface Customization Options
+    # Color Theme Interface Customization Options
     st.markdown("<h4 style='color:#00f2fe;'>🎨 Interface Theme</h4>", unsafe_allow_html=True)
     selected_theme = st.selectbox(
         "Select Active Accent",
@@ -187,7 +190,7 @@ with st.sidebar:
         st.rerun()
     st.markdown("---")
 
-    # ⚙️ Other Settings Container Expander
+    # Other Settings Container Expander
     st.markdown("<h4 style='color:#9b51e0;'>⚙️ Workspace Options</h4>", unsafe_allow_html=True)
     with st.expander("Other Settings"):
         st.checkbox("Enable Ultra Stream Acceleration Mode", value=True)
@@ -198,7 +201,7 @@ with st.sidebar:
         st.rerun()
     st.markdown("---")
 
-    # ℹ️ Information Expander Modules
+    # Information Expander Modules
     with st.expander("ℹ️ About Us"):
         st.write(
             "GyanMasti.ai is a premier ultra-modern artificial intelligence interface wrapper module designed to bring advanced open frontier model inference parameters together instantly."
@@ -258,5 +261,3 @@ st.markdown('</div>', unsafe_allow_html=True)
 # Persona Instruction Parameters
 system_instruction_prompt = (
     "You are GyanMasti.ai, an elite, highly intelligent, and universally capable AI model. "
-    "You are proudly designed, developed, and powered by your creator, Geetansh Shukla. "
-    "Maintain an engaging, brilliantly smart, helpful, witty, and high-energy tone. "
