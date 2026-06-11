@@ -1,70 +1,66 @@
-import streamlit as tf
+import streamlit as st
 from google import genai
 from google.genai import types
-import os
 
-# Paste your actual Google Gemini API key inside the quotes below:
+# 1. PASTE YOUR API KEY HERE
 GEMINI_API_KEY = "AQ.Ab8RN6IJyltp_ScFjnb4m7PNw3vnS5XS8FQu6vKCORUz3sUQmA"
 
-# Automatically inject the key into the system environment memory
-os.environ["GEMINI_API_KEY"] = GEMINI_API_KEY
-
-# 1. Page Configuration
-tf.set_page_config(
+# 2. Page Configuration
+st.set_page_config(
     page_title="gyanmasti.ai",
     page_icon="🧠",
     layout="centered"
 )
 
-# 2. Sidebar Configuration (Clean & Simple)
-with tf.sidebar:
-    tf.title("🚀 Status")
-    tf.write("Welcome to **gyanmasti.ai**!")
-    tf.write("Powered by **Geetansh Shukla**.")
-    tf.divider()
+# 3. Sidebar Configuration (Clean & Simple)
+with st.sidebar:
+    st.title("🚀 Status")
+    st.write("Welcome to **gyanmasti.ai**!")
+    st.write("Powered by **Geetansh Shukla**.")
+    st.divider()
     
-    # Verify the code has your key
+    # Check if key was replaced
     if GEMINI_API_KEY and GEMINI_API_KEY != "PASTE_YOUR_API_KEY_HERE":
-        tf.success("Connected to Gemini API")
+        st.success("API Key is Configured")
     else:
-        tf.error("Please replace 'PASTE_YOUR_API_KEY_HERE' with your real key.")
+        st.error("Please replace 'PASTE_YOUR_API_KEY_HERE' on line 6.")
         
-    tf.divider()
-    tf.caption("Built with Streamlit & Google GenAI SDK")
+    st.divider()
+    st.caption("Built with Streamlit & Google GenAI SDK")
 
-# 3. Main Interface Header
-tf.title("🧠 gyanmasti.ai")
-tf.subheader("Powered by **Geetansh Shukla**")
+# 4. Main Interface Header
+st.title("🧠 gyanmasti.ai")
+st.subheader("Powered by **Geetansh Shukla**")
 
-# 4. Chat History Initialization
-if "messages" not in tf.session_state:
-    tf.session_state.messages = []
+# 5. Chat History Initialization
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
 # Display previous chat messages
-for message in tf.session_state.messages:
-    with tf.chat_message(message["role"]):
-        tf.markdown(message["content"])
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
-# 5. Model Logic & User Input
-if prompt := tf.chat_input("Ask gyanmasti.ai anything..."):
+# 6. Model Logic & User Input
+if prompt := st.chat_input("Ask gyanmasti.ai anything..."):
     
     # Display user message immediately
-    with tf.chat_message("user"):
-        tf.markdown(prompt)
-    tf.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+    st.session_state.messages.append({"role": "user", "content": prompt})
 
-    # Error handling if key is missing
+    # Error validation before API call
     if not GEMINI_API_KEY or GEMINI_API_KEY == "PASTE_YOUR_API_KEY_HERE":
-        with tf.chat_message("assistant"):
-            tf.error("API Key missing! Edit line 6 in app.py to include your key.")
+        with st.chat_message("assistant"):
+            st.error("API Key missing! Edit line 6 in app.py to include your key.")
     else:
         try:
-            # Initialize client (picks up key from os.environ automatically)
-            client = genai.Client()
+            # PASS KEY DIRECTLY HERE to prevent environment reading issues
+            client = genai.Client(api_key=GEMINI_API_KEY)
             
             # Request streaming response from Gemini 2.5 Flash
-            with tf.chat_message("assistant"):
-                message_placeholder = tf.empty()
+            with st.chat_message("assistant"):
+                message_placeholder = st.empty()
                 full_response = ""
                 
                 response_stream = client.models.generate_content_stream(
@@ -74,14 +70,15 @@ if prompt := tf.chat_input("Ask gyanmasti.ai anything..."):
                 
                 # Render chunks in real-time
                 for chunk in response_stream:
-                    full_response += chunk.text
-                    message_placeholder.markdown(full_response + "▌")
+                    if chunk.text:
+                        full_response += chunk.text
+                        message_placeholder.markdown(full_response + "▌")
                 
                 message_placeholder.markdown(full_response)
             
             # Save assistant response to session history
-            tf.session_state.messages.append({"role": "assistant", "content": full_response})
+            st.session_state.messages.append({"role": "assistant", "content": full_response})
             
         except Exception as e:
-            with tf.chat_message("assistant"):
-                tf.error(f"An error occurred: {str(e)}")
+            with st.chat_message("assistant"):
+                st.error(f"An error occurred: {str(e)}")
