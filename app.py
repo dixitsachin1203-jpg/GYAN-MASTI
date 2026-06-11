@@ -4,7 +4,7 @@ import google.generativeai as genai
 # ==========================================
 # 1. INSERT YOUR GEMINI API KEY HERE
 # ==========================================
-GEMINI_API_KEY = "AQ.Ab8RN6JHzZL_xKV_RdnMufeK5uGtm3vZ-sbRpv7mgAbH-87E_Q"
+GEMINI_API_KEY = AQ.Ab8RN6JHzZL_xKV_RdnMufeK5uGtm3vZ-sbRpv7mgAbH-87E_Q
 
 # --- PAGE SETUP & UI CONFIGURATION ---
 st.set_page_config(
