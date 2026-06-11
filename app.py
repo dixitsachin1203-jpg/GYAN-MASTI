@@ -204,6 +204,7 @@ for current_msg in st.session_state.messages:
 st.markdown('</div>', unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # 4. CHAT PROCESSING WORKFLOW AND TOKENS STREAMING
 # -----------------------------------------------------------------------------
 if client_query := st.chat_input("Inquire anything from GyanMasti.ai..."):
@@ -244,7 +245,7 @@ if client_query := st.chat_input("Inquire anything from GyanMasti.ai..."):
                 realtime_text_accumulator = ""
                 screen_placeholder_slot = st.empty()
                 
-                               # Capture and print incoming generation text packets sequentially
+                # Capture and print incoming generation text packets sequentially
                 for network_chunk in response_stream_object:
                     if network_chunk.choices.delta.content:
                         realtime_text_accumulator += network_chunk.choices.delta.content
@@ -254,4 +255,20 @@ if client_query := st.chat_input("Inquire anything from GyanMasti.ai..."):
                             f'</div>',
                             unsafe_allow_html=True
                         )
+                
+                # Clear cursor styling parameters on final generation pass
+                screen_placeholder_slot.markdown(
+                    f'<div class="message-row assistant">'
+                    f'<div class="message-bubble">{realtime_text_accumulator}</div>'
+                    f'</div>',
+                    unsafe_allow_html=True
+                )
+                
+            # Log generation to system history
+            st.session_state.messages.append({"role": "assistant", "content": realtime_text_accumulator})
+            
+        except Exception as execution_fault:
+            st.error(f"❌ Groq Neural Core Exception: {str(execution_fault)}")
 
+# Absolute Static Branding Signature Position Footer
+st.markdown("<div class='footer-text'>GyanMasti.ai Interface Framework • Lovingly Crafted by Geetansh Shukla</div>", unsafe_allow_html=True)
