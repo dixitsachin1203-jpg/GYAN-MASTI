@@ -1,5 +1,6 @@
 import streamlit as st
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 import os
 import time
 
@@ -630,33 +631,35 @@ if user_input:
             )
             
             try:
-                # Configure API key
-                genai.configure(api_key=api_key)
+                # Initialize GenAI Client using modern SDK
+                client = genai.Client(api_key=api_key)
                 
-                # Configure hyperparameters
-                generation_config = {
-                    "temperature": temperature,
-                    "max_output_tokens": max_tokens,
-                }
-                
-                model = genai.GenerativeModel(
-                    model_name=selected_model,
+                # Configure generation parameters
+                config = types.GenerateContentConfig(
                     system_instruction=SYSTEM_INSTRUCTION,
-                    generation_config=generation_config
+                    temperature=temperature,
+                    max_output_tokens=max_tokens,
                 )
                 
-                # Format conversation history
-                chat_context = []
+                # Format conversation history using Content and Part objects
+                genai_history = []
                 for m in st.session_state.messages[:-1]:
-                    chat_context.append({
-                        "role": "user" if m["role"] == "user" else "model",
-                        "parts": [m["content"]]
-                    })
+                    role = "user" if m["role"] == "user" else "model"
+                    genai_history.append(
+                        types.Content(
+                            role=role,
+                            parts=[types.Part.from_text(text=m["content"])]
+                        )
+                    )
                 
-                # Initialize chat and send query
-                chat = model.start_chat(history=chat_context)
+                # Initialize chat session
+                chat = client.chats.create(
+                    model=selected_model,
+                    history=genai_history,
+                    config=config
+                )
                 
-                # Stream responses
+                # Send message and get stream
                 response = chat.send_message(user_input, stream=True)
                 
                 # Remove API call pulse loader
