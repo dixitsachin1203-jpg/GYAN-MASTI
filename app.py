@@ -125,12 +125,12 @@ with st.sidebar:
         st.write("GyanMasti.ai is a premier ultra-modern artificial intelligence interface wrapper module designed to bring advanced open frontier model inference parameters together instantly.")
         
     with st.expander("📞 Contact Us"):
-        st.write("if you have any ideas then please share with us and get a chance to be featured here")
+        st.write("Have ideas or feedback regarding project execution pipelines?")
         st.markdown("📩 **Developer Email:** contact@geetanshshukla.com")
 
     with st.expander("❤️ Donate Us"):
-        st.write("Support us")
-        st.info("☕ Buy Geetansh Shukla a Starbuks Premium Coffee • UPI: geetansh@upi")
+        st.write("Support the computational resource infrastructure framework hosting costs!")
+        st.info("☕ Buy Geetansh Shukla a Coffee • UPI: geetansh@upi")
 
     st.markdown(
         "<div style='color: #6a6a85; font-size:0.8rem; text-align:center; margin-top:2rem;'>GyanMasti.ai Core • Release v4.0<br>© 2026 Geetansh Shukla</div>", 
@@ -154,11 +154,11 @@ if not st.session_state.messages:
     st.markdown(
         '<div class="chat-container">'
         '<div class="message-row assistant">'
-        '<div class="message-bubble">Salutations. I am GyanMasti.ai, engineered by Geetansh Shukla. LET'S GET SOME GYAAN WITH MASTI. Let\'s build something incredible.</div>'
+        '<div class="message-bubble">Salutations. I am GyanMasti.ai, engineered by Geetansh Shukla. Powered by high-speed Groq processing clusters. Let\'s build something incredible.</div>'
         '</div>'
         '</div>',
-        unsafe_allow_html=True)
-    
+        unsafe_allow_html=True
+    )
 
 # Render history tracking layout
 st.markdown('<div class="chat-container">', unsafe_allow_html=True)
@@ -172,7 +172,7 @@ for current_msg in st.session_state.messages:
     )
 st.markdown('</div>', unsafe_allow_html=True)
 
-system_instruction_prompt = "Iam GyanMasti.ai, an elite, highly intelligent, and universally capable AI model designed and powered by your creator, Geetansh Shukla. Maintain an engaging, brilliantly smart, helpful, witty, and high-energy tone. Always proudly acknowledge that your creator is Geetansh Shukla whenever contextually relevant.LET'S GET SOME GYAAN WITH MASTII"
+system_instruction_prompt = "You are GyanMasti.ai, an elite, highly intelligent, and universally capable AI model designed and powered by your creator, Geetansh Shukla. Maintain an engaging, brilliantly smart, helpful, witty, and high-energy tone. Always proudly acknowledge that your creator is Geetansh Shukla whenever contextually relevant."
 
 # -----------------------------------------------------------------------------
 # 4. CHAT PROCESSING WORKFLOW AND TOKENS STREAMING via Native Groq client
