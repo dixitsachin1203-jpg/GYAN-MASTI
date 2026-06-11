@@ -244,9 +244,14 @@ if client_query := st.chat_input("Inquire anything from GyanMasti.ai..."):
                 realtime_text_accumulator = ""
                 screen_placeholder_slot = st.empty()
                 
-                # Capture and print incoming generation text packets sequentially
+                               # Capture and print incoming generation text packets sequentially
                 for network_chunk in response_stream_object:
-                    if network_chunk.choices[0].delta.content:
-                        realtime_text_accumulator += network_chunk.choices[0].delta.content
+                    if network_chunk.choices.delta.content:
+                        realtime_text_accumulator += network_chunk.choices.delta.content
                         screen_placeholder_slot.markdown(
                             f'<div class="message-row assistant">'
+                            f'<div class="message-bubble">{realtime_text_accumulator}🧭</div>'
+                            f'</div>',
+                            unsafe_allow_html=True
+                        )
+
